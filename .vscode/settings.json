@@ -1,0 +1,25 @@
+{
+    "Lua.diagnostics.globals": [
+        "ActionBarDownButton",
+        "ActionBarUpButton",
+        "CharacterMicroButton",
+        "CreateColorFromBytes",
+        "CreateFrame",
+        "C_CVar",
+        "C_GamePad",
+        "C_Timer",
+        "IsChatAFK",
+        "InCombatLockdown",
+        "MainMenuBarLeftEndCap",
+        "MainMenuBarPageNumber",
+        "MainMenuBarPerformanceBarFrame",
+        "MainMenuBarRightEndCap",
+        "MainMenuBarTexture0",
+        "MainMenuBarTexture1",
+        "MainMenuBarTexture2",
+        "MainMenuBarTexture3",
+        "MainMenuExpBar",
+        "SetOverrideBindingClick",
+        "UIParent"
+    ]
+}

@@ -11,6 +11,7 @@ WowApi = {
     },
     Frames = {
         CreateFrame = CreateFrame,
+        SetOverrideBinding = SetOverrideBinding,
         SetOverrideBindingClick = SetOverrideBindingClick,
     },
     GamePad = C_GamePad,
@@ -21,10 +22,6 @@ WowApi = {
     Timers = C_Timer,
     UserInterface = {
         MainMenuBar = {
-            CharacterMicroButton = {
-                Frame = ActionBarDownButton,
-                IsHidden = false,
-            },
             ActionBarDownButton = {
                 Frame = ActionBarDownButton,
                 IsHidden = true,
@@ -32,6 +29,14 @@ WowApi = {
             ActionBarUpButton = {
                 Frame = ActionBarUpButton,
                 IsHidden = true,
+            },
+            CharacterMicroButton = {
+                Frame = CharacterMicroButton,
+                IsHidden = false,
+            },
+            MainMenuBarBackpackButton = {
+                Frame = MainMenuBarBackpackButton,
+                IsHidden = false,
             },
             MainMenuBarLeftEndCap = {
                 Frame = MainMenuBarLeftEndCap,
@@ -67,6 +72,22 @@ WowApi = {
             },
             MainMenuExpBar = {
                 Frame = MainMenuExpBar,
+                IsHidden = false,
+            },
+            MainMenuXPBarTexture0 = {
+                Frame = MainMenuXPBarTexture0,
+                IsHidden = true,
+            },
+            MainMenuXPBarTexture1 = {
+                Frame = MainMenuXPBarTexture1,
+                IsHidden = true,
+            },
+            MainMenuXPBarTexture2 = {
+                Frame = MainMenuXPBarTexture2,
+                IsHidden = true,
+            },
+            MainMenuXPBarTexture3 = {
+                Frame = MainMenuXPBarTexture3,
                 IsHidden = true,
             },
         },
@@ -87,17 +108,36 @@ local initializeUserInterface = function ()
 
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
 
-    for _, mainMenuBarItem in pairs(WowApi.UserInterface.MainMenuBar) do
-        if (mainMenuBarItem.IsHidden) then
-            mainMenuBarItem.Frame:SetParent(gamePadActionBarsFrame)
+    if (true) then -- TODO: Make this user-configurable.
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDUP", ActionButton1:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDRIGHT", ActionButton2:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDDOWN", ActionButton3:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDLEFT", ActionButton4:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLSHOULDER", ActionButton5:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLSTICK", ActionButton6:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD4", ActionButton7:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD3", ActionButton8:GetName())
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD1", "JUMP")
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD2", ActionButton10:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRSHOULDER", ActionButton11:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRSTICK", ActionButton12:GetName())
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
+        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
+        WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:ClearAllPoints()
+        WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", -80, (GamePadActionBarsDefaultOffsetY - 55))
+        WowApi.UserInterface.MainMenuBar.MainMenuBarBackpackButton.Frame:ClearAllPoints()
+        WowApi.UserInterface.MainMenuBar.MainMenuBarBackpackButton.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 82.5, (GamePadActionBarsDefaultOffsetY - 105))
+        WowApi.UserInterface.MainMenuBar.MainMenuBarPageNumber.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, GamePadActionBarsDefaultOffsetY)
+        WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:ClearAllPoints()
+        WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, (GamePadActionBarsDefaultOffsetY - 35))
+        WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:SetWidth(180)
+
+        for _, mainMenuBarItem in pairs(WowApi.UserInterface.MainMenuBar) do
+            if (mainMenuBarItem.IsHidden) then
+                mainMenuBarItem.Frame:SetParent(gamePadActionBarsFrame)
+            end
         end
     end
-
-    CharacterMicroButton:ClearAllPoints()
-    CharacterMicroButton:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", -80, GamePadActionBarsDefaultOffsetY - 35)
-    MainMenuExpBar:ClearAllPoints()
-    MainMenuExpBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, GamePadActionBarsDefaultOffsetY - 70)
-    WowApi.UserInterface.MainMenuBar.MainMenuBarPageNumber.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, GamePadActionBarsDefaultOffsetY)
 
     for i = 0, 35 do
         local actionBarName = "ActionButton"
@@ -143,7 +183,9 @@ local initializeUserInterface = function ()
         gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
         gamePadActionBarsFrame:SetFrameRef(gamePadIconFrame:GetName(), gamePadIconFrame)
 
-        if (i > 11) then
+        if (i == 8) then
+            actionButton:SetAlpha(0.0)
+        elseif (i > 11) then
             gamePadIconFrame:Hide()
         end
     end
@@ -215,7 +257,13 @@ gamePadActionBarsFrame:SetAttribute("PADLTRIGGER", false)
 gamePadActionBarsFrame:SetAttribute("PADRTRIGGER", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
+    local jumpActionButton = self:GetFrameRef("ActionButton9")
+
     if (down) then
+        jumpActionButton:SetAlpha(1.0)
+        jumpActionButton:SetBindingClick(true, "PAD1", jumpActionButton)
+        jumpActionButton:Show()
+
         if "PADLTRIGGER" == button then
             self:SetAttribute("PADLTRIGGER", true)
 
@@ -234,12 +282,12 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
             end
         end
     else
+        jumpActionButton:SetAlpha(0.0)
+        jumpActionButton:SetBinding(true, "PAD1", "JUMP")
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)
     end
 ]])
 
-WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", "GamePadActionBarsFrame", "PADLTRIGGER")
-WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", "GamePadActionBarsFrame", "PADRTRIGGER")
 WowApi.UserDefined = userDefinedApi

@@ -120,7 +120,6 @@ local initializeUserInterface = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", "INTERACTTARGET")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "TOGGLEGAMEMENU")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
@@ -199,7 +198,8 @@ local onAddonLoaded = function (key)
 
             if nil ~= rawState then
                 if GamePadNameDualSense == rawState.name then
-                    gamePadCursorLeftClick = "PADBACK"
+                    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
+                    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEGAMEMENU")
                 end
             end
         end
@@ -210,8 +210,8 @@ local onAddonLoaded = function (key)
         WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "0")              -- 0 = never, 1 (default) = always
         WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "1")            -- 0 = never, 1 = on movement, 2 (default) = on cursor or movement
         WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                   -- 0 = never, 1 (default) = always
-        WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "1")            --
-        WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "1")                    --
+        WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")            --
+        WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                    --
         WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "1")                 --
         WowApi.ConsoleVariables.SetCVar("GamePadCursorLeftClick", gamePadCursorLeftClick) --
         WowApi.ConsoleVariables.SetCVar("GamePadCursorOnLogin", "1")                      --

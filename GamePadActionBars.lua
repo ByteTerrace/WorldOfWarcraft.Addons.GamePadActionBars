@@ -109,23 +109,20 @@ local initializeUserInterface = function ()
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
 
     if (true) then -- TODO: Make this user-configurable.
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDUP", ActionButton1:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDRIGHT", ActionButton2:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDDOWN", ActionButton3:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADDLEFT", ActionButton4:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLSHOULDER", ActionButton5:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLSTICK", ActionButton6:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD4", ActionButton7:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD3", ActionButton8:GetName())
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDLEFT", "ACTIONBUTTON4")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", "TARGETSCANENEMY")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSTICK", "ACTIONBUTTON6")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD4", "ACTIONBUTTON7")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
         WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD1", "JUMP")
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PAD2", ActionButton10:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRSHOULDER", ActionButton11:GetName())
-        WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRSTICK", ActionButton12:GetName())
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", "INTERACTTARGET")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
         WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
         WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "JUMP") --  XBOX (PS5: PADSOCIAL)
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "JUMP") -- PS5/XBOX
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "JUMP") --  PS5 (XBOX: PADBACK)
 
         WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:ClearAllPoints()
         WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", -80, (GamePadActionBarsDefaultOffsetY - 55))
@@ -187,7 +184,7 @@ local initializeUserInterface = function ()
         gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
         gamePadActionBarsFrame:SetFrameRef(gamePadIconFrame:GetName(), gamePadIconFrame)
 
-        if (i == 8) then
+        if ((i == 4) or (i == 8) or (i == 10)) then
             actionButton:SetAlpha(0.0)
         elseif (i > 11) then
             gamePadIconFrame:Hide()
@@ -281,12 +278,20 @@ gamePadActionBarsFrame:SetAttribute("PADLTRIGGER", false)
 gamePadActionBarsFrame:SetAttribute("PADRTRIGGER", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
-    local jumpActionButton = self:GetFrameRef("ActionButton9")
+    local actionButton5 = self:GetFrameRef("ActionButton5")
+    local actionButton9 = self:GetFrameRef("ActionButton9")
+    local actionButton11 = self:GetFrameRef("ActionButton11")
 
     if (down) then
-        jumpActionButton:SetAlpha(1.0)
-        jumpActionButton:SetBindingClick(true, "PAD1", jumpActionButton)
-        jumpActionButton:Show()
+        actionButton5:SetAlpha(1.0)
+        actionButton5:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+        actionButton5:Show()
+        actionButton9:SetAlpha(1.0)
+        actionButton9:SetBindingClick(true, "PAD1", actionButton9)
+        actionButton9:Show()
+        actionButton11:SetAlpha(1.0)
+        actionButton11:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+        actionButton11:Show()
 
         if "PADLTRIGGER" == button then
             self:SetAttribute("PADLTRIGGER", true)
@@ -306,8 +311,12 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
             end
         end
     else
-        jumpActionButton:SetAlpha(0.0)
-        jumpActionButton:SetBinding(true, "PAD1", "JUMP")
+        actionButton5:SetAlpha(0.0)
+        actionButton5:SetBinding(true, "PADLSHOULDER", "TARGETSCANENEMY")
+        actionButton9:SetAlpha(0.0)
+        actionButton9:SetBinding(true, "PAD1", "JUMP")
+        actionButton11:SetAlpha(0.0)
+        actionButton11:SetBinding(true, "PADRSHOULDER", "INTERACTTARGET")
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)

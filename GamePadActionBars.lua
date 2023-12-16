@@ -77,7 +77,7 @@ local initializeUserInterface = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD1", "JUMP")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", "INTERACTTARGET")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", "INTERACTMOUSEOVER")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
@@ -195,6 +195,7 @@ local onPlayerFlagsChanged = function ()
     WowApi.UserDefined.Player.IsAwayFromKeyboard = WowApi.Player.IsAwayFromKeyboard()
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
 end
+local onPlayerInteractionManagerShow = function() end
 local onPlayerRegenDisabled = function ()
     WowApi.UserDefined.Player.IsInCombat = true
     WowApi.GamePad.SetVibration("High", 1.0)
@@ -224,6 +225,7 @@ local userDefinedEventHandlerMap = {
     ADDON_LOADED = onAddonLoaded,
     PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
     PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
+    PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
     PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
     PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
 }
@@ -273,25 +275,27 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                 self:SetBinding(true, "PADRSHOULDER", "TOGGLEAUTORUN")
             end
         else
-            actionButton5:SetAlpha(1.0)
-            actionButton5:Show()
-            actionButton11:SetAlpha(1.0)
-            actionButton11:Show()
             self:SetAttribute("PADRTRIGGER", true)
-            self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-            self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
 
             if self:GetAttribute("PADLTRIGGER") then
+                actionButton5:SetAlpha(1.0)
+                actionButton5:Show()
+                actionButton11:SetAlpha(1.0)
+                actionButton11:Show()
                 self:SetAttribute("action", 5)
+                self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
                 self:SetAttribute("action", 3)
+                self:SetBinding(true, "PADLSHOULDER", "FLIPCAMERAYAW")
+                self:SetBinding(true, "PADRSHOULDER", "TOGGLESHEATH")
             end
         end
     else
         actionButton5:SetAlpha(0.0)
         actionButton9:SetAlpha(0.0)
         actionButton11:SetAlpha(0.0)
-        actionButton11:SetBinding(true, "PADRSHOULDER", "INTERACTTARGET")
+        actionButton11:SetBinding(true, "PADRSHOULDER", "INTERACTMOUSEOVER")
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)

@@ -12,18 +12,18 @@ The mod sets up temporary bindings using a hidden secure button frame that captu
 
 These states map to their corresponding action bar page in the World of Warcraft UI, along with a set of predefined bindings that are outlined in the table below.
 
-| GamePad Button Name | State 1 Binding Name | State 2 Binding Name    | State 3-5 Binding Name |
-| ------------------- | -------------------- | ----------------------- | ---------------------- |
-| `PADDUP`            | ACTIONBUTTON1        | ACTIONBUTTON1           | ACTIONBUTTON1          |
-| `PADDRIGHT`         | ACTIONBUTTON2        | ACTIONBUTTON2           | ACTIONBUTTON2          |
-| `PADDDOWN`          | ACTIONBUTTON3        | ACTIONBUTTON3           | ACTIONBUTTON3          |
-| `PADDLEFT`          | ACTIONBUTTON4        | ACTIONBUTTON4           | ACTIONBUTTON4          |
-| `PADLSHOULDER`      | **TARGETSCANENEMY**  | **TARGETNEARESTFRIEND** | ACTIONBUTTON5          |
-| `PADLSTICK`         | ACTIONBUTTON6        | ACTIONBUTTON6           | ACTIONBUTTON6          |
-| `PAD4`              | ACTIONBUTTON7        | ACTIONBUTTON7           | ACTIONBUTTON7          |
-| `PAD3`              | ACTIONBUTTON8        | ACTIONBUTTON8           | ACTIONBUTTON8          |
-| `PAD1`              | **JUMP**             | ACTIONBUTTON9           | ACTIONBUTTON9          |
-| `PAD2`              | ACTIONBUTTON10       | ACTIONBUTTON10          | ACTIONBUTTON10         |
-| `PADRSHOULDER`      | **INTERACTTARGET**   | **TOGGLEAUTORUN**       | ACTIONBUTTON11         |
-| `PADRSTICK`         | ACTIONBUTTON12       | ACTIONBUTTON12          | ACTIONBUTTON12         |
-| `PADFORWARD`        | TOGGLEGAMEMENU       | TOGGLEGAMEMENU          | TOGGLEGAMEMENU         |
+| GamePad Button Name | State 1 Binding Name    | State 2 Binding Name    | State 3 Binding Name | State 4-5 Binding Name |
+| ------------------- | ----------------------- | ----------------------- | -------------------- | ---------------------- |
+| `PADDUP`            | ACTIONBUTTON1           | ACTIONBUTTON1           | ACTIONBUTTON1        | ACTIONBUTTON1          |
+| `PADDRIGHT`         | ACTIONBUTTON2           | ACTIONBUTTON2           | ACTIONBUTTON2        | ACTIONBUTTON2          |
+| `PADDDOWN`          | ACTIONBUTTON3           | ACTIONBUTTON3           | ACTIONBUTTON3        | ACTIONBUTTON3          |
+| `PADDLEFT`          | ACTIONBUTTON4           | ACTIONBUTTON4           | ACTIONBUTTON4        | ACTIONBUTTON4          |
+| `PADLSHOULDER`      | **TARGETNEARESTENEMY**  | **TARGETNEARESTFRIEND** | **FLIPCAMERAYAW**    | ACTIONBUTTON5          |
+| `PADLSTICK`         | ACTIONBUTTON6           | ACTIONBUTTON6           | ACTIONBUTTON6        | ACTIONBUTTON6          |
+| `PAD4`              | ACTIONBUTTON7           | ACTIONBUTTON7           | ACTIONBUTTON7        | ACTIONBUTTON7          |
+| `PAD3`              | ACTIONBUTTON8           | ACTIONBUTTON8           | ACTIONBUTTON8        | ACTIONBUTTON8          |
+| `PAD1`              | **JUMP**                | ACTIONBUTTON9           | ACTIONBUTTON9        | ACTIONBUTTON9          |
+| `PAD2`              | ACTIONBUTTON10          | ACTIONBUTTON10          | ACTIONBUTTON10       | ACTIONBUTTON10         |
+| `PADRSHOULDER`      | **INTERACTMOUSEOVER**   | **TOGGLEAUTORUN**       | **TOGGLESHEATH**     | ACTIONBUTTON11         |
+| `PADRSTICK`         | ACTIONBUTTON12          | ACTIONBUTTON12          | ACTIONBUTTON12       | ACTIONBUTTON12         |
+| `PADFORWARD`        | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU         |

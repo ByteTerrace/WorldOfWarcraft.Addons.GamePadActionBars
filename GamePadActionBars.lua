@@ -47,14 +47,6 @@ WowApi = {
 
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 local initializeUserInterface = function ()
-    local gamePadButtonOffsetMap = {
-        [0] = 120,
-        [1] = 80,
-        [2] = 120,
-        [3] = 160,
-        [4] = 160,
-        [5] = 120,
-    }
     local screenWidth = WowApi.UserInterface.GetScreenWidth()
 
     MainMenuBar:ClearAllPoints()
@@ -96,12 +88,8 @@ local initializeUserInterface = function ()
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
         local isReflection = (5 < iMod12)
-        local isStickButton = (0 == iMod6)
-        local isTriggerButton = (4 == iMod6)
-        local isHorizontal = (((1 == iMod2) and (4 > iMod6)) or isTriggerButton)
-        local isVertical = (((0 == iMod2) and (4 > iMod6)) or isTriggerButton)
-        local xOffset = (gamePadButtonOffsetMap[iMod6] * (isReflection and 1 or -1))
-        local yOffset = (60 + ((0 == iMod2) and 40 or 0) * ((isStickButton or isTriggerButton) and 1 or -1))
+        local xOffset = ((((1 == iMod6) or (3 == iMod6) or (4 == iMod6)) and ((1 == iMod6) and 80 or 160) or 120) * (isReflection and 1 or -1))
+        local yOffset = (60 + ((1 == iMod2) and 0 or 40) * ((((0 == iMod6) or (4 == iMod6))) and 1 or -1))
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"

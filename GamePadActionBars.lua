@@ -155,12 +155,12 @@ local onPlayerEnteringWorld = function()
     WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                     --
     WowApi.ConsoleVariables.SetCVar("GamePadCameraPitchSpeed", "1.5")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadCameraYawSpeed", "2.25")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")              -- 0 = never, 1 (default) = always
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "1")            -- 0 = never, 1 = on movement, 2 (default) = on cursor or movement
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                   -- 0 = never, 1 (default) = always
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")              -- 0 = never, 1 = always
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "1")            -- 0 = never, 1 = on movement, 2 = on cursor or movement
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                   -- 0 = never, 1 = always
     WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")            --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                    --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "0")                 -- 0 = never, 1 = always, 2 = ???
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "0")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorLeftClick", "NONE")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorOnLogin", "1")                      --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorRightClick", "NONE")                --
@@ -170,8 +170,8 @@ local onPlayerEnteringWorld = function()
     WowApi.ConsoleVariables.SetCVar("GamePadEmulateShift", "NONE")                    --
     WowApi.ConsoleVariables.SetCVar("GamePadEmulateTapWindowMs", "0")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadEnable", "1")                             --
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "105")             -- 0 (default) = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "105")       -- 0 = always, 180 (default) = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "105")             -- 0 = always, 180 = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "105")       -- 0 = always, 180 = never
     WowApi.ConsoleVariables.SetCVar("GamePadFactionColor", "0")                       --
     WowApi.ConsoleVariables.SetCVar("GamePadOverlapMouseMs", "2000")                  --
     WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                    --
@@ -189,7 +189,7 @@ local onPlayerEnteringWorld = function()
     WowApi.ConsoleVariables.SetCVar("SoftTargetForce", "0")                           -- 0 = never, 1 = enemies, 2 = friends
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteract", "1")                        -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteractArc", "1")                     -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "25.5")                --
+    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")                 --
 end
 local onPlayerFlagsChanged = function ()
     WowApi.UserDefined.Player.IsAwayFromKeyboard = WowApi.Player.IsAwayFromKeyboard()

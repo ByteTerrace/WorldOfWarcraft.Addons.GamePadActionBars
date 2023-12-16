@@ -48,14 +48,13 @@ WowApi = {
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 local initializeUserInterface = function ()
     local gamePadButtonOffsetMap = {
-        [0] = -120,
-        [1] = -80,
-        [2] = -120,
-        [3] = -160,
-        [4] = -160,
-        [5] = -120,
+        [0] = 120,
+        [1] = 80,
+        [2] = 120,
+        [3] = 160,
+        [4] = 160,
+        [5] = 120,
     }
-    local screenHeight = WowApi.UserInterface.GetScreenHeight()
     local screenWidth = WowApi.UserInterface.GetScreenWidth()
 
     MainMenuBar:ClearAllPoints()
@@ -97,23 +96,24 @@ local initializeUserInterface = function ()
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
         local isReflection = (5 < iMod12)
-        local xOffset = 0
-        local yOffset = 60
+        local isStickButton = (0 == iMod6)
+        local isTriggerButton = (4 == iMod6)
+        local isHorizontal = (((1 == iMod2) and (4 > iMod6)) or isTriggerButton)
+        local isVertical = (((0 == iMod2) and (4 > iMod6)) or isTriggerButton)
+        local xOffset = (gamePadButtonOffsetMap[iMod6] * (isReflection and 1 or -1))
+        local yOffset = (60 + ((0 == iMod2) and 40 or 0) * ((isStickButton or isTriggerButton) and 1 or -1))
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"
             alpha = GamePadActionBarsDefaultPassiveAlpha
-            xOffset = (isReflection and -40 or 40)
-            yOffset = (yOffset - 80)
+            xOffset = (xOffset + (40 * (isReflection and -1 or 1)))
+            yOffset = (yOffset + 80)
         elseif ((i > 23) and (i < 36)) then
             actionBarName = "MultiBarBottomRightButton"
             alpha = GamePadActionBarsDefaultPassiveAlpha
-            xOffset = (isReflection and 80 or -80)
-            yOffset = (yOffset - 80)
+            xOffset = (xOffset + (80 * (isReflection and 1 or -1)))
+            yOffset = (yOffset + 80)
         end
-
-        xOffset = (xOffset + (gamePadButtonOffsetMap[iMod6] * (isReflection and -1 or 1)))
-        yOffset = (((0 == iMod2) and 40 or 0) * (((0 == iMod6) or (4 == iMod6)) and 1 or -1) + yOffset)
 
         local actionButton = _G[(actionBarName .. (iMod12 + 1))]
         local gamePadIconFrame = WowApi.Frames.CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
@@ -122,7 +122,7 @@ local initializeUserInterface = function ()
         actionButton.GamePadIconFrame = gamePadIconFrame
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
-        actionButton:SetPoint("CENTER", xOffset, yOffset)
+        actionButton:SetPoint("CENTER", MainMenuBar, "CENTER", xOffset, yOffset)
         gamePadIconFrame:SetAllPoints(actionButton)
         gamePadIconFrame:SetFrameLevel(actionButton:GetFrameLevel() + 1)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")

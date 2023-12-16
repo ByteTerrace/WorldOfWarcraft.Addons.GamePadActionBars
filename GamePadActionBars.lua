@@ -42,6 +42,10 @@ WowApi = {
             ReputationWatchBar.StatusBar.WatchBarTexture1,
             ReputationWatchBar.StatusBar.WatchBarTexture2,
             ReputationWatchBar.StatusBar.WatchBarTexture3,
+            ReputationWatchBar.StatusBar.XPBarTexture0,
+            ReputationWatchBar.StatusBar.XPBarTexture1,
+            ReputationWatchBar.StatusBar.XPBarTexture2,
+            ReputationWatchBar.StatusBar.XPBarTexture3,
         },
         Parent = UIParent,
     },
@@ -67,7 +71,7 @@ local initializeUserInterface = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDLEFT", "ACTIONBUTTON4")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", "TARGETSCANENEMY")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", "TARGETNEARESTENEMY")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSTICK", "ACTIONBUTTON6")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD4", "ACTIONBUTTON7")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
@@ -291,7 +295,7 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)
-        self:SetBinding(true, "PADLSHOULDER", "TARGETSCANENEMY")
+        self:SetBinding(true, "PADLSHOULDER", "TARGETNEARESTENEMY")
         self:SetBinding(true, "PAD1", "JUMP")
     end
 ]])

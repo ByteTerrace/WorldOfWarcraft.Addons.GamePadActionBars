@@ -59,7 +59,7 @@ local initializeUserInterface = function ()
     local screenWidth = WowApi.UserInterface.GetScreenWidth()
 
     MainMenuBar:ClearAllPoints()
-    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, -(screenHeight * 0.375))
+    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", 0, 100)
     MainMenuBar:SetWidth(screenWidth / 32)
     CharacterMicroButton:ClearAllPoints()
     CharacterMicroButton:SetPoint("CENTER", -((CharacterMicroButton:GetWidth() * 2.625)), 0)
@@ -126,18 +126,18 @@ local initializeUserInterface = function ()
         gamePadIconFrame:SetAllPoints(actionButton)
         gamePadIconFrame:SetFrameLevel(actionButton:GetFrameLevel() + 1)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-        gamePadIconTexture:SetPoint("CENTER", actionButton, 0, 0)
+        gamePadIconTexture:SetPoint("CENTER", 0, 0)
         gamePadIconTexture:SetSize(24, 24)
         gamePadIconTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/" .. iMod12 .. ".blp")
         gamePadIconFrame.Texture = gamePadIconTexture
-
-        gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
 
         if ((i == 4) or (i == 8) or (i == 10)) then
             actionButton:SetAlpha(0.0)
         elseif (i > 11) then
             gamePadIconFrame:Hide()
         end
+
+        gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
     end
 end
 local onAddonLoaded = function (key)

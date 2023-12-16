@@ -23,8 +23,6 @@ WowApi = {
         IsInCombat = InCombatLockdown,
     },
     UserInterface = {
-        GetScreenHeight = GetScreenHeight,
-        GetScreenWidth = GetScreenWidth,
         HiddenFrames = {
             ActionBarDownButton,
             ActionBarUpButton,
@@ -69,17 +67,16 @@ local initializeGamePadBindings = function ()
         end
     end
 
-    if (isDualSenseControllerConnected and (not(isXboxControllerConnected) or (GamePadActionBarsPreferredControllerType == GamePadNameDualSense))) then
+    if (isDualSenseControllerConnected and (GamePadActionBarsPreferredControllerType == GamePadNameDualSense)) then
         WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEGAMEMENU")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "JUMP") -- TODO: Decide what action to bind with.
-    elseif (isXboxControllerConnected and (not(isDualSenseControllerConnected) or (GamePadActionBarsPreferredControllerType == GamePadNameXboxSeriesX))) then
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEGAMEMENU")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "JUMP") -- TODO: Figure out why the button press event doesn't actually fire.
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "TOGGLEWORLDMAP")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEQUESTLOG")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD6", "TOGGLEWORLDMAP")
+    elseif (isXboxControllerConnected and (GamePadActionBarsPreferredControllerType == GamePadNameXboxSeriesX)) then
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "TOGGLEQUESTLOG")
     end
 
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "TOGGLEQUESTLOG")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "TOGGLEGAMEMENU")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
@@ -289,6 +286,7 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                 self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
                 self:SetAttribute("action", 2)
+                self:SetBinding(true, "PADFORWARD", "TOGGLECHARACTER0")
                 self:SetBinding(true, "PADLSHOULDER", "TARGETNEARESTFRIEND")
                 self:SetBinding(true, "PADRSHOULDER", "TOGGLEAUTORUN")
             end
@@ -317,6 +315,7 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)
+        self:SetBinding(true, "PADFORWARD", "TOGGLEGAMEMENU")
         self:SetBinding(true, "PADLSHOULDER", "TARGETNEARESTENEMY")
         self:SetBinding(true, "PAD1", "JUMP")
     end

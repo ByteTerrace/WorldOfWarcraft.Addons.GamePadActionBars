@@ -1,7 +1,5 @@
 local GamePadActionBarsAddonName = "GamePadActionBars"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
-local GamePadActionBarsDefaultOffsetX = 0
-local GamePadActionBarsDefaultOffsetY = -80
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
 local GamePadNameDualSense = "DualSense Wireless Controller"
 local GamePadNameXboxSeriesX = "Xbox Series X Controller"
@@ -21,77 +19,27 @@ WowApi = {
         IsAwayFromKeyboard = IsChatAFK,
         IsInCombat = InCombatLockdown,
     },
-    Timers = C_Timer,
     UserInterface = {
-        MainMenuBar = {
-            ActionBarDownButton = {
-                Frame = ActionBarDownButton,
-                IsHidden = true,
-            },
-            ActionBarUpButton = {
-                Frame = ActionBarUpButton,
-                IsHidden = true,
-            },
-            CharacterMicroButton = {
-                Frame = CharacterMicroButton,
-                IsHidden = false,
-            },
-            MainMenuBarBackpackButton = {
-                Frame = MainMenuBarBackpackButton,
-                IsHidden = false,
-            },
-            MainMenuBarLeftEndCap = {
-                Frame = MainMenuBarLeftEndCap,
-                IsHidden = true,
-            },
-            MainMenuBarPageNumber = {
-                Frame = MainMenuBarPageNumber,
-                IsHidden = false,
-            },
-            MainMenuBarPerformanceBarFrame = {
-                Frame = MainMenuBarPerformanceBarFrame,
-                IsHidden = true,
-            },
-            MainMenuBarRightEndCap = {
-                Frame = MainMenuBarRightEndCap,
-                IsHidden = true,
-            },
-            MainMenuBarTexture0 = {
-                Frame = MainMenuBarTexture0,
-                IsHidden = true,
-            },
-            MainMenuBarTexture1 = {
-                Frame = MainMenuBarTexture1,
-                IsHidden = true,
-            },
-            MainMenuBarTexture2 = {
-                Frame = MainMenuBarTexture2,
-                IsHidden = true,
-            },
-            MainMenuBarTexture3 = {
-                Frame = MainMenuBarTexture3,
-                IsHidden = true,
-            },
-            MainMenuExpBar = {
-                Frame = MainMenuExpBar,
-                IsHidden = false,
-            },
-            MainMenuXPBarTexture0 = {
-                Frame = MainMenuXPBarTexture0,
-                IsHidden = true,
-            },
-            MainMenuXPBarTexture1 = {
-                Frame = MainMenuXPBarTexture1,
-                IsHidden = true,
-            },
-            MainMenuXPBarTexture2 = {
-                Frame = MainMenuXPBarTexture2,
-                IsHidden = true,
-            },
-            MainMenuXPBarTexture3 = {
-                Frame = MainMenuXPBarTexture3,
-                IsHidden = true,
-            },
+        GetScreenHeight = GetScreenHeight,
+        GetScreenWidth = GetScreenWidth,
+        HiddenFrames = {
+            ActionBarDownButton,
+            ActionBarUpButton,
+            MainMenuBarLeftEndCap,
+            MainMenuBarPerformanceBarFrame,
+            MainMenuBarRightEndCap,
+            MainMenuBarTexture0,
+            MainMenuBarTexture1,
+            MainMenuBarTexture2,
+            MainMenuBarTexture3,
+            MainMenuXPBarTexture0,
+            MainMenuXPBarTexture1,
+            MainMenuXPBarTexture2,
+            MainMenuXPBarTexture3,
+            ReputationWatchBar.StatusBar.WatchBarTexture0,
+            ReputationWatchBar.StatusBar.WatchBarTexture1,
+            ReputationWatchBar.StatusBar.WatchBarTexture2,
+            ReputationWatchBar.StatusBar.WatchBarTexture3,
         },
         Parent = UIParent,
     },
@@ -107,6 +55,20 @@ local initializeUserInterface = function ()
         [4] = -160,
         [5] = -120,
     }
+    local screenHeight = WowApi.UserInterface.GetScreenHeight()
+    local screenWidth = WowApi.UserInterface.GetScreenWidth()
+
+    MainMenuBar:ClearAllPoints()
+    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, -(screenHeight * 0.375))
+    MainMenuBar:SetWidth(screenWidth / 32)
+    CharacterMicroButton:ClearAllPoints()
+    CharacterMicroButton:SetPoint("CENTER", -((CharacterMicroButton:GetWidth() * 2.625)), 0)
+    MainMenuBarBackpackButton:ClearAllPoints()
+    MainMenuBarBackpackButton:SetPoint("CENTER", CharacterMicroButton, "CENTER", (MainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
+    MainMenuBarPageNumber:SetPoint("CENTER", 0, 60)
+    MainMenuExpBar:SetWidth(screenWidth / 8)
+    ReputationWatchBar:SetWidth(screenWidth / 8)
+    ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar:GetWidth())
 
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
@@ -123,19 +85,9 @@ local initializeUserInterface = function ()
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
-    WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:ClearAllPoints()
-    WowApi.UserInterface.MainMenuBar.CharacterMicroButton.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", -80, (GamePadActionBarsDefaultOffsetY - 55))
-    WowApi.UserInterface.MainMenuBar.MainMenuBarBackpackButton.Frame:ClearAllPoints()
-    WowApi.UserInterface.MainMenuBar.MainMenuBarBackpackButton.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 82.5, (GamePadActionBarsDefaultOffsetY - 105))
-    WowApi.UserInterface.MainMenuBar.MainMenuBarPageNumber.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, GamePadActionBarsDefaultOffsetY)
-    WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:ClearAllPoints()
-    WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", 0, (GamePadActionBarsDefaultOffsetY - 35))
-    WowApi.UserInterface.MainMenuBar.MainMenuExpBar.Frame:SetWidth(180)
 
-    for _, mainMenuBarItem in pairs(WowApi.UserInterface.MainMenuBar) do
-        if (mainMenuBarItem.IsHidden) then
-            mainMenuBarItem.Frame:SetParent(gamePadActionBarsFrame)
-        end
+    for _, frame in pairs(WowApi.UserInterface.HiddenFrames) do
+        frame:SetParent(gamePadActionBarsFrame)
     end
 
     for i = 0, 35 do
@@ -145,8 +97,8 @@ local initializeUserInterface = function ()
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
         local isReflection = (5 < iMod12)
-        local xOffset = GamePadActionBarsDefaultOffsetX
-        local yOffset = GamePadActionBarsDefaultOffsetY
+        local xOffset = 0
+        local yOffset = 60
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"
@@ -170,17 +122,16 @@ local initializeUserInterface = function ()
         actionButton.GamePadIconFrame = gamePadIconFrame
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
-        actionButton:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", xOffset, yOffset)
+        actionButton:SetPoint("CENTER", xOffset, yOffset)
         gamePadIconFrame:SetAllPoints(actionButton)
         gamePadIconFrame:SetFrameLevel(actionButton:GetFrameLevel() + 1)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-        gamePadIconTexture:SetPoint("CENTER", WowApi.UserInterface.Parent, "CENTER", xOffset, yOffset)
+        gamePadIconTexture:SetPoint("CENTER", actionButton, 0, 0)
         gamePadIconTexture:SetSize(24, 24)
         gamePadIconTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/" .. iMod12 .. ".blp")
         gamePadIconFrame.Texture = gamePadIconTexture
 
         gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
-        gamePadActionBarsFrame:SetFrameRef(gamePadIconFrame:GetName(), gamePadIconFrame)
 
         if ((i == 4) or (i == 8) or (i == 10)) then
             actionButton:SetAlpha(0.0)

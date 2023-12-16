@@ -1,5 +1,5 @@
 ## GamePadActionBars
-A lightweight mod that grants efficient access to up to 57 of your existing action buttons by intuitively reorganizing the main action bar and mapping gamepad shoulder inputs to action bar swaps.
+A lightweight mod that grants efficient access to up to 53 of your existing action buttons by intuitively reorganizing the main action bar and mapping gamepad shoulder inputs to action bar swaps.
 
 ### _How does it work?_
 The mod sets up temporary bindings using a hidden secure button frame that captures the shoulder trigger (`PADLTRIGGER`/`PADRTRIGGER`) inputs. The driver can be in one of 5 states:
@@ -26,4 +26,3 @@ These states map to their corresponding action bar page in the World of Warcraft
 | `PAD2`              | ACTIONBUTTON10          | ACTIONBUTTON10          | ACTIONBUTTON10       | ACTIONBUTTON10         |
 | `PADRSHOULDER`      | **INTERACTMOUSEOVER**   | **TOGGLEAUTORUN**       | **TOGGLESHEATH**     | ACTIONBUTTON11         |
 | `PADRSTICK`         | ACTIONBUTTON12          | ACTIONBUTTON12          | ACTIONBUTTON12       | ACTIONBUTTON12         |
-| `PADFORWARD`        | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU         |

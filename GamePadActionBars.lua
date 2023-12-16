@@ -1,10 +1,11 @@
+local GamePadNameDualSense = "DualSense Wireless Controller"
+local GamePadNameXboxSeriesX = "Xbox Series X Controller"
 local GamePadActionBarsAddonName = "GamePadActionBars"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
 local GamePadActionBarsDefaultOffsetX = 0
 local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
-local GamePadNameDualSense = "DualSense Wireless Controller"
-local GamePadNameXboxSeriesX = "Xbox Series X Controller"
+local GamePadActionBarsPreferredControllerType = GamePadNameDualSense
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -52,21 +53,33 @@ WowApi = {
 }
 
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
-local initializeUserInterface = function ()
-    local characterMicroButtonWidth = ((CharacterMicroButton:GetWidth() * 2.625))
+local initializeGamePadBindings = function ()
+    local isDualSenseControllerConnected = false
+    local isXboxControllerConnected = false
 
-    MainMenuBar:ClearAllPoints()
-    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
-    MainMenuBar:SetSize(32, 32)
-    CharacterMicroButton:ClearAllPoints()
-    CharacterMicroButton:SetPoint("CENTER", -characterMicroButtonWidth, -10)
-    MainMenuBarBackpackButton:ClearAllPoints()
-    MainMenuBarBackpackButton:SetPoint("CENTER", CharacterMicroButton, "CENTER", (MainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
-    MainMenuBarPageNumber:SetPoint("CENTER", 0, 50)
-    MainMenuExpBar:SetWidth(characterMicroButtonWidth * 2)
-    ReputationWatchBar:SetWidth(characterMicroButtonWidth * 2)
-    ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar:GetWidth())
+    for deviceId in ipairs(WowApi.GamePad:GetAllDeviceIDs()) do
+        local _, rawState = pcall(WowApi.GamePad.GetDeviceRawState, deviceId)
 
+        if nil ~= rawState then
+            if GamePadNameDualSense == rawState.name then
+                isDualSenseControllerConnected = true
+            elseif GamePadNameXboxSeriesX == rawState.name then
+                isXboxControllerConnected = true
+            end
+        end
+    end
+
+    if (isDualSenseControllerConnected and (not(isXboxControllerConnected) or (GamePadActionBarsPreferredControllerType == GamePadNameDualSense))) then
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEGAMEMENU")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "JUMP") -- TODO: Decide what action to bind with.
+    elseif (isXboxControllerConnected and (not(isDualSenseControllerConnected) or (GamePadActionBarsPreferredControllerType == GamePadNameXboxSeriesX))) then
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEGAMEMENU")
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "JUMP") -- TODO: Figure out why the button press event doesn't actually fire.
+        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "TOGGLEWORLDMAP")
+    end
+
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "TOGGLEQUESTLOG")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
@@ -81,6 +94,21 @@ local initializeUserInterface = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
+end
+local initializeUserInterface = function ()
+    local characterMicroButtonWidth = ((CharacterMicroButton:GetWidth() * 2.625))
+
+    MainMenuBar:ClearAllPoints()
+    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
+    MainMenuBar:SetSize(32, 32)
+    CharacterMicroButton:ClearAllPoints()
+    CharacterMicroButton:SetPoint("CENTER", -characterMicroButtonWidth, -10)
+    MainMenuBarBackpackButton:ClearAllPoints()
+    MainMenuBarBackpackButton:SetPoint("CENTER", CharacterMicroButton, "CENTER", (MainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
+    MainMenuBarPageNumber:SetPoint("CENTER", 0, 50)
+    MainMenuExpBar:SetWidth(characterMicroButtonWidth * 2)
+    ReputationWatchBar:SetWidth(characterMicroButtonWidth * 2)
+    ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar:GetWidth())
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
 
     for _, frame in pairs(WowApi.UserInterface.HiddenFrames) do
@@ -136,17 +164,7 @@ local initializeUserInterface = function ()
 end
 local onAddonLoaded = function (key)
     if GamePadActionBarsAddonName == key then
-        for deviceId in ipairs(WowApi.GamePad:GetAllDeviceIDs()) do
-            local _, rawState = pcall(WowApi.GamePad.GetDeviceRawState, deviceId)
-
-            if nil ~= rawState then
-                if GamePadNameDualSense == rawState.name then
-                    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
-                    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEGAMEMENU")
-                end
-            end
-        end
-
+        initializeGamePadBindings()
         initializeUserInterface()
     end
 end

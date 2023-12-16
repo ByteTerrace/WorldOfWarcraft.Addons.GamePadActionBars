@@ -1,5 +1,7 @@
 local GamePadActionBarsAddonName = "GamePadActionBars"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
+local GamePadActionBarsDefaultOffsetX = 0
+local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
 local GamePadNameDualSense = "DualSense Wireless Controller"
 local GamePadNameXboxSeriesX = "Xbox Series X Controller"
@@ -47,18 +49,18 @@ WowApi = {
 
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 local initializeUserInterface = function ()
-    local screenWidth = WowApi.UserInterface.GetScreenWidth()
+    local characterMicroButtonWidth = ((CharacterMicroButton:GetWidth() * 2.625))
 
     MainMenuBar:ClearAllPoints()
-    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", 0, 100)
-    MainMenuBar:SetWidth(screenWidth / 32)
+    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
+    MainMenuBar:SetSize(32, 32)
     CharacterMicroButton:ClearAllPoints()
-    CharacterMicroButton:SetPoint("CENTER", -((CharacterMicroButton:GetWidth() * 2.625)), 0)
+    CharacterMicroButton:SetPoint("CENTER", -characterMicroButtonWidth, -10)
     MainMenuBarBackpackButton:ClearAllPoints()
     MainMenuBarBackpackButton:SetPoint("CENTER", CharacterMicroButton, "CENTER", (MainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
-    MainMenuBarPageNumber:SetPoint("CENTER", 0, 60)
-    MainMenuExpBar:SetWidth(screenWidth / 8)
-    ReputationWatchBar:SetWidth(screenWidth / 8)
+    MainMenuBarPageNumber:SetPoint("CENTER", 0, 50)
+    MainMenuExpBar:SetWidth(characterMicroButtonWidth * 2)
+    ReputationWatchBar:SetWidth(characterMicroButtonWidth * 2)
     ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar:GetWidth())
 
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
@@ -89,7 +91,7 @@ local initializeUserInterface = function ()
         local iMod12 = (i % 12)
         local isReflection = (5 < iMod12)
         local xOffset = ((((1 == iMod6) or (3 == iMod6) or (4 == iMod6)) and ((1 == iMod6) and 80 or 160) or 120) * (isReflection and 1 or -1))
-        local yOffset = (60 + ((1 == iMod2) and 0 or 40) * ((((0 == iMod6) or (4 == iMod6))) and 1 or -1))
+        local yOffset = (50 + ((1 == iMod2) and 0 or 40) * ((((0 == iMod6) or (4 == iMod6))) and 1 or -1))
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"

@@ -1,17 +1,25 @@
 local GamePadNameDualSense = "DualSense Wireless Controller"
 local GamePadNameXboxSeriesX = "Xbox Series X Controller"
 local GamePadActionBarsAddonName = "GamePadActionBars"
+local GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
+local GamePadActionBarsCustomPadNameStart = "PADFORWARD"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
 local GamePadActionBarsDefaultOffsetX = 0
 local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
+local GamePadActionBarsInputType = GamePadNameDualSense
 local GamePadActionBarsPadLshoulderState1Binding = "TARGETNEARESTENEMY"
 local GamePadActionBarsPadLshoulderState2Binding = "TARGETNEARESTFRIEND"
-local GamePadActionBarsPadLshoulderState3Binding = "FLIPCAMERAYAW"
+local GamePadActionBarsPadLshoulderState3Binding = "TOGGLESHEATH"
 local GamePadActionBarsPadRshoulderState1Binding = "INTERACTMOUSEOVER"
 local GamePadActionBarsPadRshoulderState2Binding = "TOGGLEAUTORUN"
-local GamePadActionBarsPadRshoulderState3Binding = "TOGGLESHEATH"
-local GamePadActionBarsPreferredControllerType = GamePadNameDualSense
+local GamePadActionBarsPadRshoulderState3Binding = "FLIPCAMERAYAW"
+local GamePadActionBarsPadSelectState1Binding = "TOGGLEQUESTLOG"
+local GamePadActionBarsPadSelectState2Binding = "TOGGLESOCIAL"
+local GamePadActionBarsPadSelectState3Binding = "TOGGLECHARACTER0"
+local GamePadActionBarsPadStartState1Binding = "TOGGLEGAMEMENU"
+local GamePadActionBarsPadStartState2Binding = "TOGGLEGAMEMENU"
+local GamePadActionBarsPadStartState3Binding = "TOGGLEGAMEMENU"
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -108,16 +116,19 @@ local initializeGamePadBindings = function ()
         end
     end
 
-    if (isDualSenseControllerConnected and (GamePadActionBarsPreferredControllerType == GamePadNameDualSense)) then
+    if (isDualSenseControllerConnected and (GamePadActionBarsInputType == GamePadNameDualSense)) then
+        GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
+        GamePadActionBarsCustomPadNameStart = "PADFORWARD"
         WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSOCIAL", "TOGGLEQUESTLOG")
         WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD6", "TOGGLEWORLDMAP")
-    elseif (isXboxControllerConnected and (GamePadActionBarsPreferredControllerType == GamePadNameXboxSeriesX)) then
+    elseif (isXboxControllerConnected and (GamePadActionBarsInputType == GamePadNameXboxSeriesX)) then
+        GamePadActionBarsCustomPadNameSelect = "PADSYSTEM"
+        GamePadActionBarsCustomPadNameStart = "PADFORWARD"
         WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADBACK", "TOGGLEWORLDMAP")
-        WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADSYSTEM", "TOGGLEQUESTLOG")
     end
 
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADFORWARD", "TOGGLEGAMEMENU")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, GamePadActionBarsCustomPadNameSelect, GamePadActionBarsPadSelectState1Binding)
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, GamePadActionBarsCustomPadNameStart, GamePadActionBarsPadStartState1Binding)
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
@@ -314,13 +325,21 @@ gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
+gamePadActionBarsFrame:SetAttribute("CustomPadName-Select", GamePadActionBarsCustomPadNameSelect)
+gamePadActionBarsFrame:SetAttribute("CustomPadName-Start", GamePadActionBarsCustomPadNameStart)
 gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
+gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State1", GamePadActionBarsPadSelectState1Binding)
+gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State2", GamePadActionBarsPadSelectState2Binding)
+gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State3", GamePadActionBarsPadSelectState3Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State1", GamePadActionBarsPadLshoulderState1Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State2", GamePadActionBarsPadLshoulderState2Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State3", GamePadActionBarsPadLshoulderState3Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State1", GamePadActionBarsPadRshoulderState1Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State2", GamePadActionBarsPadRshoulderState2Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State3", GamePadActionBarsPadRshoulderState3Binding)
+gamePadActionBarsFrame:SetAttribute("PadStartBinding-State1", GamePadActionBarsPadStartState1Binding)
+gamePadActionBarsFrame:SetAttribute("PadStartBinding-State2", GamePadActionBarsPadStartState2Binding)
+gamePadActionBarsFrame:SetAttribute("PadStartBinding-State3", GamePadActionBarsPadStartState3Binding)
 gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
@@ -350,6 +369,8 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                     self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
                     self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
                     self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
+                    self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State2"))
+                    self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State2"))
                 end
             else
                 self:SetAttribute("PadTriggerRight-IsDown", true)
@@ -366,6 +387,8 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                     self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
                     self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
                     self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
+                    self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State3"))
+                    self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State3"))
                 end
             end
         else
@@ -377,6 +400,8 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
             self:SetAttribute("PadTriggerRight-IsDown", false)
             self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
             self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
+            self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State1"))
+            self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State1"))
             self:SetBinding(true, "PAD1", "JUMP")
         end
     end

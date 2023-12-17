@@ -26,3 +26,5 @@ These states map to their corresponding action bar page in the World of Warcraft
 | `PAD2`              | ACTIONBUTTON10          | ACTIONBUTTON10          | ACTIONBUTTON10       | ACTIONBUTTON10         |
 | `PADRSHOULDER`      | **INTERACTMOUSEOVER**   | **TOGGLEAUTORUN**       | **TOGGLESHEATH**     | ACTIONBUTTON11         |
 | `PADRSTICK`         | ACTIONBUTTON12          | ACTIONBUTTON12          | ACTIONBUTTON12       | ACTIONBUTTON12         |
+| `PADSELECT`         | TOGGLEQUESTLOG          | TOGGLESOCIAL            | TOGGLECHARACTER0     | TOGGLEQUESTLOG         |
+| `PADSTART`          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU         |

@@ -20,6 +20,7 @@ WowApi = {
     },
     Frames = {
         CreateFrame = CreateFrame,
+        RegisterAttributeDriver = RegisterAttributeDriver,
         SetOverrideBinding = SetOverrideBinding,
         SetOverrideBindingClick = SetOverrideBindingClick,
     },
@@ -56,6 +57,14 @@ WowApi = {
             ReputationWatchBar.StatusBar.XPBarTexture2,
             ReputationWatchBar.StatusBar.XPBarTexture3,
         },
+        ModifiedFrames = {
+            CharacterMicroButton = CharacterMicroButton,
+            MainMenuBar = MainMenuBar,
+            MainMenuBarBackpackButton = MainMenuBarBackpackButton,
+            MainMenuBarPageNumber = MainMenuBarPageNumber,
+            MainMenuExpBar = MainMenuExpBar,
+            ReputationWatchBar = ReputationWatchBar,
+        },
         Parent = UIParent,
         ResetView = ResetView,
         SaveView = SaveView,
@@ -63,7 +72,7 @@ WowApi = {
     },
 }
 
-local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerAttributeTemplate, SecureHandlerBaseTemplate")
 local initializeGamePadBindings = function ()
     local isDualSenseControllerConnected = false
     local isXboxControllerConnected = false
@@ -106,20 +115,23 @@ local initializeGamePadBindings = function ()
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
 end
 local initializeUserInterface = function ()
-    local characterMicroButtonWidth = ((CharacterMicroButton:GetWidth() * 2.625))
+    local characterMicroButton = WowApi.UserInterface.ModifiedFrames.CharacterMicroButton
+    local characterMicroButtonWidth = ((characterMicroButton:GetWidth() * 2.625))
+    local mainMenuBar = WowApi.UserInterface.ModifiedFrames.MainMenuBar
+    local mainMenuBarBackpackButton = WowApi.UserInterface.ModifiedFrames.MainMenuBarBackpackButton
+    local reputationWatchBar = WowApi.UserInterface.ModifiedFrames.ReputationWatchBar
 
-    MainMenuBar:ClearAllPoints()
-    MainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
-    MainMenuBar:SetSize(32, 32)
-    CharacterMicroButton:ClearAllPoints()
-    CharacterMicroButton:SetPoint("CENTER", -characterMicroButtonWidth, -10)
-    MainMenuBarBackpackButton:ClearAllPoints()
-    MainMenuBarBackpackButton:SetPoint("CENTER", CharacterMicroButton, "CENTER", (MainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
-    MainMenuBarPageNumber:SetPoint("CENTER", 0, 50)
-    MainMenuExpBar:SetWidth(characterMicroButtonWidth * 2)
-    ReputationWatchBar:SetWidth(characterMicroButtonWidth * 2)
-    ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar:GetWidth())
-    WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
+    mainMenuBar:ClearAllPoints()
+    mainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
+    mainMenuBar:SetSize(32, 32)
+    characterMicroButton:ClearAllPoints()
+    characterMicroButton:SetPoint("CENTER", -characterMicroButtonWidth, -10)
+    mainMenuBarBackpackButton:ClearAllPoints()
+    mainMenuBarBackpackButton:SetPoint("CENTER", characterMicroButton, "CENTER", (mainMenuBarBackpackButton:GetWidth() * 4.39393939393939), -50)
+    WowApi.UserInterface.ModifiedFrames.MainMenuBarPageNumber:SetPoint("CENTER", 0, 50)
+    WowApi.UserInterface.ModifiedFrames.MainMenuExpBar:SetWidth(characterMicroButtonWidth * 2)
+    reputationWatchBar:SetWidth(characterMicroButtonWidth * 2)
+    reputationWatchBar.StatusBar:SetWidth(reputationWatchBar:GetWidth())
 
     for _, frame in pairs(WowApi.UserInterface.HiddenFrames) do
         frame:SetParent(gamePadActionBarsFrame)
@@ -154,7 +166,7 @@ local initializeUserInterface = function ()
         actionButton.GamePadIconFrame = gamePadIconFrame
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
-        actionButton:SetPoint("CENTER", MainMenuBar, "CENTER", xOffset, yOffset)
+        actionButton:SetPoint("CENTER", mainMenuBar, "CENTER", xOffset, yOffset)
         gamePadIconFrame:SetAllPoints(actionButton)
         gamePadIconFrame:SetFrameLevel(actionButton:GetFrameLevel() + 1)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
@@ -219,22 +231,23 @@ local onPlayerEnteringWorld = function()
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteract", "1")                     -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteractArc", "1")                  -- 0 = never, 1 = within arc, 2 = anywhere
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")              --
+    WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
 
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
     WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitch", "1")
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPad", "0.65")             -- min is 0.4, max is 1.0
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", "0.25")    -- min is 0.25, max is 1.0
+    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPad", "0.875")             -- min is 0.4, max is 1.0
+    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", "0.25")     -- min is 0.25, max is 1.0
     WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementStrength", "1")
     WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementMovingStrength", "1.0")
     WowApi.ConsoleVariables.SetCVar("test_cameraOverShoulder", "0.475")                       -- min is ???, max is ???
     WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractEnable", "1")
-    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthPitch", "0.75")   -- min is ???, max is ???
-    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthYaw", "1.0")      -- min is ???, max is ???
+    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthPitch", "0.75")    -- min is ???, max is ???
+    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthYaw", "1.0")       -- min is ???, max is ???
     WowApi.UserInterface.ResetView(5)
     WowApi.UserInterface.SetView(5)
     WowApi.UserInterface.Camera.ZoomOut(50.0)
-    WowApi.UserInterface.Camera.ZoomIn(2.5)
+    WowApi.UserInterface.Camera.ZoomIn(1.25)
     WowApi.UserInterface.SaveView(5)
 end
 local onPlayerFlagsChanged = function ()
@@ -296,6 +309,7 @@ gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
 gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
+gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State1", GamePadActionBarsPadLshoulderState1Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State2", GamePadActionBarsPadLshoulderState2Binding)
 gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State3", GamePadActionBarsPadLshoulderState3Binding)
@@ -306,59 +320,69 @@ gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
-    local actionButton5 = self:GetFrameRef("ActionButton5")
-    local actionButton9 = self:GetFrameRef("ActionButton9")
-    local actionButton11 = self:GetFrameRef("ActionButton11")
+    if self:GetAttribute("IsEnabled") then
+        local actionButton5 = self:GetFrameRef("ActionButton5")
+        local actionButton9 = self:GetFrameRef("ActionButton9")
+        local actionButton11 = self:GetFrameRef("ActionButton11")
 
-    if (down) then
-        actionButton9:SetAlpha(1.0)
-        actionButton9:Show()
-        self:SetBindingClick(true, "PAD1", actionButton9)
+        if (down) then
+            actionButton9:SetAlpha(1.0)
+            actionButton9:Show()
+            self:SetBindingClick(true, "PAD1", actionButton9)
 
-        if "PADLTRIGGER" == button then
-            self:SetAttribute("PadTriggerLeft-IsDown", true)
+            if "PADLTRIGGER" == button then
+                self:SetAttribute("PadTriggerLeft-IsDown", true)
 
-            if self:GetAttribute("PadTriggerRight-IsDown") then
-                actionButton5:SetAlpha(1.0)
-                actionButton5:Show()
-                actionButton11:SetAlpha(1.0)
-                actionButton11:Show()
-                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State4"))
-                self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                if self:GetAttribute("PadTriggerRight-IsDown") then
+                    actionButton5:SetAlpha(1.0)
+                    actionButton5:Show()
+                    actionButton11:SetAlpha(1.0)
+                    actionButton11:Show()
+                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State4"))
+                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                else
+                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
+                    self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
+                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
+                end
             else
-                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
-                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
-                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
+                self:SetAttribute("PadTriggerRight-IsDown", true)
+
+                if self:GetAttribute("PadTriggerLeft-IsDown") then
+                    actionButton5:SetAlpha(1.0)
+                    actionButton5:Show()
+                    actionButton11:SetAlpha(1.0)
+                    actionButton11:Show()
+                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State5"))
+                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                else
+                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
+                    self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
+                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
+                end
             end
         else
-            self:SetAttribute("PadTriggerRight-IsDown", true)
-
-            if self:GetAttribute("PadTriggerLeft-IsDown") then
-                actionButton5:SetAlpha(1.0)
-                actionButton5:Show()
-                actionButton11:SetAlpha(1.0)
-                actionButton11:Show()
-                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State5"))
-                self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
-            else
-                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
-                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
-                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
-            end
+            actionButton5:SetAlpha(0.0)
+            actionButton9:SetAlpha(0.0)
+            actionButton11:SetAlpha(0.0)
+            self:SetAttribute("action", self:GetAttribute("ActionBarPage-State1"))
+            self:SetAttribute("PadTriggerLeft-IsDown", false)
+            self:SetAttribute("PadTriggerRight-IsDown", false)
+            self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
+            self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
+            self:SetBinding(true, "PAD1", "JUMP")
         end
-    else
-        actionButton5:SetAlpha(0.0)
-        actionButton9:SetAlpha(0.0)
-        actionButton11:SetAlpha(0.0)
-        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State1"))
-        self:SetAttribute("PadTriggerLeft-IsDown", false)
-        self:SetAttribute("PadTriggerRight-IsDown", false)
-        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
-        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
-        self:SetBinding(true, "PAD1", "JUMP")
     end
 ]])
 
 WowApi.UserDefined = userDefinedApi
+
+-- EXPERIMENTAL: debugging driver
+if (false) then
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-combat', '[combat] true; false')
+    gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnAttributeChanged", [[
+        print("name: " .. name .. " | value: " .. tostring(value))
+    ]])
+end

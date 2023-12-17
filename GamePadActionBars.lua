@@ -6,6 +6,12 @@ local GamePadActionBarsDefaultOffsetX = 0
 local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
 local GamePadActionBarsPreferredControllerType = GamePadNameDualSense
+local GamePadActionBarsPadLshoulderState1Binding = "TARGETNEARESTENEMY"
+local GamePadActionBarsPadLshoulderState2Binding = "TARGETNEARESTFRIEND"
+local GamePadActionBarsPadLshoulderState3Binding = "FLIPCAMERAYAW"
+local GamePadActionBarsPadRshoulderState1Binding = "INTERACTMOUSEOVER"
+local GamePadActionBarsPadRshoulderState2Binding = "TOGGLEAUTORUN"
+local GamePadActionBarsPadRshoulderState3Binding = "TOGGLESHEATH"
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -88,13 +94,13 @@ local initializeGamePadBindings = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDLEFT", "ACTIONBUTTON4")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", "TARGETNEARESTENEMY")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", GamePadActionBarsPadLshoulderState1Binding)
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSTICK", "ACTIONBUTTON6")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD4", "ACTIONBUTTON7")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD1", "JUMP")
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", "INTERACTMOUSEOVER")
+    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", GamePadActionBarsPadRshoulderState1Binding)
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
@@ -287,6 +293,12 @@ gamePadActionBarsFrame:RegisterForClicks("AnyDown", "AnyUp")
 gamePadActionBarsFrame:SetAttribute("action", 1)
 gamePadActionBarsFrame:SetAttribute("PADLTRIGGER", false)
 gamePadActionBarsFrame:SetAttribute("PADRTRIGGER", false)
+gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State1-Binding", GamePadActionBarsPadLshoulderState1Binding)
+gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State2-Binding", GamePadActionBarsPadLshoulderState2Binding)
+gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State3-Binding", GamePadActionBarsPadLshoulderState3Binding)
+gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State1-Binding", GamePadActionBarsPadRshoulderState1Binding)
+gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State2-Binding", GamePadActionBarsPadRshoulderState2Binding)
+gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State3-Binding", GamePadActionBarsPadRshoulderState3Binding)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
     local actionButton5 = self:GetFrameRef("ActionButton5")
@@ -311,8 +323,8 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                 self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
                 self:SetAttribute("action", 2)
-                self:SetBinding(true, "PADLSHOULDER", "TARGETNEARESTFRIEND")
-                self:SetBinding(true, "PADRSHOULDER", "TOGGLEAUTORUN")
+                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State2-Binding"))
+                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State2-Binding"))
             end
         else
             self:SetAttribute("PADRTRIGGER", true)
@@ -327,19 +339,19 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
                 self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
                 self:SetAttribute("action", 3)
-                self:SetBinding(true, "PADLSHOULDER", "FLIPCAMERAYAW")
-                self:SetBinding(true, "PADRSHOULDER", "TOGGLESHEATH")
+                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State3-Binding"))
+                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State3-Binding"))
             end
         end
     else
         actionButton5:SetAlpha(0.0)
         actionButton9:SetAlpha(0.0)
         actionButton11:SetAlpha(0.0)
-        actionButton11:SetBinding(true, "PADRSHOULDER", "INTERACTMOUSEOVER")
         self:SetAttribute("action", 1)
         self:SetAttribute("PADLTRIGGER", false)
         self:SetAttribute("PADRTRIGGER", false)
-        self:SetBinding(true, "PADLSHOULDER", "TARGETNEARESTENEMY")
+        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State1-Binding"))
+        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State2-Binding"))
         self:SetBinding(true, "PAD1", "JUMP")
     end
 ]])

@@ -72,7 +72,7 @@ WowApi = {
     },
 }
 
-local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerAttributeTemplate, SecureHandlerBaseTemplate")
+local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 local initializeGamePadBindings = function ()
     local isDualSenseControllerConnected = false
     local isXboxControllerConnected = false
@@ -381,8 +381,20 @@ WowApi.UserDefined = userDefinedApi
 
 -- EXPERIMENTAL: debugging driver
 if (false) then
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-combat', '[combat] true; false')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isincombat', '[combat] true; false', nil)
+
+    gamePadActionBarsFrame:SetAttribute("_onstate-isincombat", [[
+    ]])
     gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnAttributeChanged", [[
         print("name: " .. name .. " | value: " .. tostring(value))
     ]])
 end
+
+--[[
+    https://breezewiki.com/wowpedia/wiki/RestrictedEnvironment
+    https://breezewiki.com/wowpedia/wiki/Secure_command_options
+    https://breezewiki.com/wowpedia/wiki/SecureHandlers
+    https://breezewiki.com/wowpedia/wiki/SecureActionButtonTemplate
+    https://breezewiki.com/wowpedia/wiki/SecureHandlerStateTemplate
+    https://breezewiki.com/wowpedia/wiki/SecureStateDriver
+]]

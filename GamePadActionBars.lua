@@ -5,13 +5,13 @@ local GamePadActionBarsDefaultActiveAlpha = 1.0
 local GamePadActionBarsDefaultOffsetX = 0
 local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
-local GamePadActionBarsPreferredControllerType = GamePadNameDualSense
 local GamePadActionBarsPadLshoulderState1Binding = "TARGETNEARESTENEMY"
 local GamePadActionBarsPadLshoulderState2Binding = "TARGETNEARESTFRIEND"
 local GamePadActionBarsPadLshoulderState3Binding = "FLIPCAMERAYAW"
 local GamePadActionBarsPadRshoulderState1Binding = "INTERACTMOUSEOVER"
 local GamePadActionBarsPadRshoulderState2Binding = "TOGGLEAUTORUN"
 local GamePadActionBarsPadRshoulderState3Binding = "TOGGLESHEATH"
+local GamePadActionBarsPreferredControllerType = GamePadNameDualSense
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -291,14 +291,19 @@ end
 gamePadActionBarsFrame:EnableGamePadButton(true)
 gamePadActionBarsFrame:RegisterForClicks("AnyDown", "AnyUp")
 gamePadActionBarsFrame:SetAttribute("action", 1)
-gamePadActionBarsFrame:SetAttribute("PADLTRIGGER", false)
-gamePadActionBarsFrame:SetAttribute("PADRTRIGGER", false)
-gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State1-Binding", GamePadActionBarsPadLshoulderState1Binding)
-gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State2-Binding", GamePadActionBarsPadLshoulderState2Binding)
-gamePadActionBarsFrame:SetAttribute("PADLSHOULDER-State3-Binding", GamePadActionBarsPadLshoulderState3Binding)
-gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State1-Binding", GamePadActionBarsPadRshoulderState1Binding)
-gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State2-Binding", GamePadActionBarsPadRshoulderState2Binding)
-gamePadActionBarsFrame:SetAttribute("PADRSHOULDER-State3-Binding", GamePadActionBarsPadRshoulderState3Binding)
+gamePadActionBarsFrame:SetAttribute("ActionBarPage-State1", 1)
+gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
+gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
+gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
+gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
+gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State1", GamePadActionBarsPadLshoulderState1Binding)
+gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State2", GamePadActionBarsPadLshoulderState2Binding)
+gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State3", GamePadActionBarsPadLshoulderState3Binding)
+gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State1", GamePadActionBarsPadRshoulderState1Binding)
+gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State2", GamePadActionBarsPadRshoulderState2Binding)
+gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State3", GamePadActionBarsPadRshoulderState3Binding)
+gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
+gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
     local actionButton5 = self:GetFrameRef("ActionButton5")
@@ -311,47 +316,47 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
         self:SetBindingClick(true, "PAD1", actionButton9)
 
         if "PADLTRIGGER" == button then
-            self:SetAttribute("PADLTRIGGER", true)
+            self:SetAttribute("PadTriggerLeft-IsDown", true)
 
-            if self:GetAttribute("PADRTRIGGER") then
+            if self:GetAttribute("PadTriggerRight-IsDown") then
                 actionButton5:SetAlpha(1.0)
                 actionButton5:Show()
                 actionButton11:SetAlpha(1.0)
                 actionButton11:Show()
-                self:SetAttribute("action", 4)
+                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State4"))
                 self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
                 self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
-                self:SetAttribute("action", 2)
-                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State2-Binding"))
-                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State2-Binding"))
+                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
+                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
+                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
             end
         else
-            self:SetAttribute("PADRTRIGGER", true)
+            self:SetAttribute("PadTriggerRight-IsDown", true)
 
-            if self:GetAttribute("PADLTRIGGER") then
+            if self:GetAttribute("PadTriggerLeft-IsDown") then
                 actionButton5:SetAlpha(1.0)
                 actionButton5:Show()
                 actionButton11:SetAlpha(1.0)
                 actionButton11:Show()
-                self:SetAttribute("action", 5)
+                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State5"))
                 self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
                 self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
             else
-                self:SetAttribute("action", 3)
-                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State3-Binding"))
-                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State3-Binding"))
+                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
+                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
+                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
             end
         end
     else
         actionButton5:SetAlpha(0.0)
         actionButton9:SetAlpha(0.0)
         actionButton11:SetAlpha(0.0)
-        self:SetAttribute("action", 1)
-        self:SetAttribute("PADLTRIGGER", false)
-        self:SetAttribute("PADRTRIGGER", false)
-        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PADLSHOULDER-State1-Binding"))
-        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PADRSHOULDER-State2-Binding"))
+        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State1"))
+        self:SetAttribute("PadTriggerLeft-IsDown", false)
+        self:SetAttribute("PadTriggerRight-IsDown", false)
+        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
+        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
         self:SetBinding(true, "PAD1", "JUMP")
     end
 ]])

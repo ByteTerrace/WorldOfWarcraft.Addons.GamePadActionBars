@@ -9,6 +9,7 @@
         "CreateFrame",
         "C_CVar",
         "C_GamePad",
+        "FramerateText",
         "GetScreenHeight",
         "GetScreenWidth",
         "IsChatAFK",

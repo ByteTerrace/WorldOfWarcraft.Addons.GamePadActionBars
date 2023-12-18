@@ -67,6 +67,7 @@ WowApi = {
         },
         ModifiedFrames = {
             CharacterMicroButton = CharacterMicroButton,
+            FramerateText = FramerateText,
             MainMenuBar = MainMenuBar,
             MainMenuBarBackpackButton = MainMenuBarBackpackButton,
             MainMenuBarPageNumber = MainMenuBarPageNumber,
@@ -87,7 +88,7 @@ local initializeCameraVariables = function()
     WowApi.ConsoleVariables.SetCVar("CameraKeepCharacterCentered", "0")                       --
     WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitch", "1")                           --
     WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPad", "0.875")             -- min is 0.4, max is 1.0
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", "0.25")     -- min is 0.25, max is 1.0
+    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", "1.0")      -- min is 0.25, max is 1.0
     WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementStrength", "1")                   --
     WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementMovingStrength", "1.0")           --
     WowApi.ConsoleVariables.SetCVar("test_cameraOverShoulder", "0.475")                       -- min is ???, max is ???
@@ -187,10 +188,13 @@ end
 local initializeUserInterface = function ()
     local characterMicroButton = WowApi.UserInterface.ModifiedFrames.CharacterMicroButton
     local characterMicroButtonWidth = ((characterMicroButton:GetWidth() * 2.625))
+    local framerateText = WowApi.UserInterface.ModifiedFrames.FramerateText
     local mainMenuBar = WowApi.UserInterface.ModifiedFrames.MainMenuBar
     local mainMenuBarBackpackButton = WowApi.UserInterface.ModifiedFrames.MainMenuBarBackpackButton
     local reputationWatchBar = WowApi.UserInterface.ModifiedFrames.ReputationWatchBar
 
+    framerateText:ClearAllPoints()
+    framerateText:SetPoint("CENTER", mainMenuBar, 0, 40)
     mainMenuBar:ClearAllPoints()
     mainMenuBar:SetPoint("CENTER", WowApi.UserInterface.Parent, "BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
     mainMenuBar:SetSize(32, 32)

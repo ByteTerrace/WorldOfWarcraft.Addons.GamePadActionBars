@@ -4,6 +4,10 @@
         "ActionBarUpButton",
         "CameraZoomIn",
         "CameraZoomOut",
+        "CharacterBag0Slot",
+        "CharacterBag1Slot",
+        "CharacterBag2Slot",
+        "CharacterBag3Slot",
         "CharacterMicroButton",
         "CreateColorFromBytes",
         "CreateFrame",
@@ -29,6 +33,8 @@
         "MainMenuXPBarTexture1",
         "MainMenuXPBarTexture2",
         "MainMenuXPBarTexture3",
+        "PetActionBarFrame",
+        "PetActionButton1",
         "RegisterAttributeDriver",
         "ReputationWatchBar",
         "ResetView",
@@ -36,6 +42,8 @@
         "SetOverrideBinding",
         "SetOverrideBindingClick",
         "SetView",
+        "SlidingActionBarTexture0",
+        "SlidingActionBarTexture1",
         "UIParent"
     ]
 }

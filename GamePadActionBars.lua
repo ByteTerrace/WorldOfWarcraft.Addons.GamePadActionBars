@@ -183,7 +183,7 @@ local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadStickAxisButtons", "0")                --
     WowApi.ConsoleVariables.SetCVar("GamePadTankTurnSpeed", "0.0")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadTouchCursorEnable", "1")               --
+    WowApi.ConsoleVariables.SetCVar("GamePadTouchCursorEnable", "0")               --
     WowApi.ConsoleVariables.SetCVar("GamePadTurnWithCamera", "2")                  -- 0 = never, 1 = while in combat, 2 = always
     WowApi.ConsoleVariables.SetCVar("GamePadVibrationStrength", "1")               --
     WowApi.ConsoleVariables.SetCVar("SoftTargetEnemy", "1")                        -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always

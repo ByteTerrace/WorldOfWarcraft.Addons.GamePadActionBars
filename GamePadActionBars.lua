@@ -5,7 +5,7 @@ local GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
 local GamePadActionBarsCustomPadNameStart = "PADFORWARD"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
 local GamePadActionBarsDefaultOffsetX = 0
-local GamePadActionBarsDefaultOffsetY = 125
+local GamePadActionBarsDefaultOffsetY = 85
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
 local GamePadActionBarsInputType = GamePadNameDualSense
 local GamePadActionBarsPadLshoulderState1Binding = "TARGETNEARESTENEMY"
@@ -68,19 +68,23 @@ WowApi = {
             SlidingActionBarTexture1,
         },
         ModifiedFrames = {
-            CharacterBag0Slot = CharacterBag0Slot,
-            CharacterBag1Slot = CharacterBag1Slot,
-            CharacterBag2Slot = CharacterBag2Slot,
-            CharacterBag3Slot = CharacterBag3Slot,
+            CastingBarFrame = CastingBarFrame,
             CharacterMicroButton = CharacterMicroButton,
             FramerateText = FramerateText,
+            HelpMicroButton = HelpMicroButton,
             MainMenuBar = MainMenuBar,
             MainMenuBarBackpackButton = MainMenuBarBackpackButton,
             MainMenuBarPageNumber = MainMenuBarPageNumber,
             MainMenuExpBar = MainMenuExpBar,
+            MainMenuMicroButton = MainMenuMicroButton,
             PetActionBarFrame = PetActionBarFrame,
             PetActionButton1 = PetActionButton1,
+            QuestLogMicroButton = QuestLogMicroButton,
             ReputationWatchBar = ReputationWatchBar,
+            SocialsMicroButton = SocialsMicroButton,
+            SpellbookMicroButton = SpellbookMicroButton,
+            TalentMicroButton = TalentMicroButton,
+            WorldMapMicroButton = WorldMapMicroButton,
         },
         Parent = UIParent,
         ResetView = ResetView,
@@ -194,36 +198,73 @@ local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")              --
 end
 local initializeUserInterface = function ()
+    -- base frames
+    local castingBarFrame = WowApi.UserInterface.ModifiedFrames.CastingBarFrame
     local characterMicroButton = WowApi.UserInterface.ModifiedFrames.CharacterMicroButton
     local mainMenuBar = WowApi.UserInterface.ModifiedFrames.MainMenuBar
     local mainMenuBarBackpackButton = WowApi.UserInterface.ModifiedFrames.MainMenuBarBackpackButton
     local mainMenuBarPageNumber = WowApi.UserInterface.ModifiedFrames.MainMenuBarPageNumber
     local mainMenuExpBar = WowApi.UserInterface.ModifiedFrames.MainMenuExpBar
-    local petActionBarFrame = WowApi.UserInterface.ModifiedFrames.PetActionBarFrame
     local petActionButton1 = WowApi.UserInterface.ModifiedFrames.PetActionButton1
     local reputationWatchBar = WowApi.UserInterface.ModifiedFrames.ReputationWatchBar
 
-    WowApi.UserInterface.ModifiedFrames.CharacterBag0Slot:SetParent(petActionBarFrame)
-    WowApi.UserInterface.ModifiedFrames.CharacterBag1Slot:SetParent(petActionBarFrame)
-    WowApi.UserInterface.ModifiedFrames.CharacterBag2Slot:SetParent(petActionBarFrame)
-    WowApi.UserInterface.ModifiedFrames.CharacterBag3Slot:SetParent(petActionBarFrame)
+    -- owner frames
+    local bagButtonOwnerFrame = CreateFrame("Frame", "BagButtonOwnerFrame", mainMenuBar)
+    local castingBarOwnerFrame = CreateFrame("Frame", "CastingBarOwnerFrame", mainMenuBar)
+    local microButtonOwnerFrame = CreateFrame("Frame", "MicroButtonOwnerFrame", mainMenuBar)
+    local petActionButtonOwnerFrame = CreateFrame("Frame", "PetActionButtonOwnerFrame", mainMenuBar)
 
+    -- reorganize user interface
+    bagButtonOwnerFrame:SetPoint("CENTER", 0, -30)
+    bagButtonOwnerFrame:SetScale(0.50)
+    bagButtonOwnerFrame:SetSize(20, 20)
+    bagButtonOwnerFrame:Show()
+    castingBarOwnerFrame:SetPoint("CENTER", 0, 75)
+    castingBarOwnerFrame:SetScale(0.50)
+    castingBarOwnerFrame:SetSize(20, 20)
+    castingBarOwnerFrame:Show()
+    mainMenuBarBackpackButton:SetParent(bagButtonOwnerFrame)
+    microButtonOwnerFrame:SetPoint("CENTER", 0, -40)
+    microButtonOwnerFrame:SetScale(0.85)
+    microButtonOwnerFrame:SetSize(20, 20)
+    microButtonOwnerFrame:Show()
+    petActionButtonOwnerFrame:SetPoint("CENTER", 0, 20)
+    petActionButtonOwnerFrame:SetScale(0.75)
+    petActionButtonOwnerFrame:SetSize(20, 20)
+    petActionButtonOwnerFrame:Show()
+
+    for i = 0, 3 do
+        _G[("CharacterBag" .. i .. "Slot")]:SetParent(bagButtonOwnerFrame)
+    end
+
+    castingBarFrame:SetParent(castingBarOwnerFrame)
+    characterMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.HelpMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.MainMenuMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.PetActionBarFrame:SetParent(petActionButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.QuestLogMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.SocialsMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.SpellbookMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.TalentMicroButton:SetParent(microButtonOwnerFrame)
+    WowApi.UserInterface.ModifiedFrames.WorldMapMicroButton:SetParent(microButtonOwnerFrame)
+
+    castingBarFrame:ClearAllPoints()
+    castingBarFrame:SetPoint("CENTER", 0, 0)
+    castingBarFrame.SetPoint = function(...) end
+    characterMicroButton:ClearAllPoints()
+    characterMicroButton:SetPoint("CENTER", -(characterMicroButton:GetWidth() * 3.175), 0)
     mainMenuBar:ClearAllPoints()
     mainMenuBar:SetPoint("BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
     mainMenuBar:SetSize(20, 20)
-    mainMenuBarBackpackButton:SetParent(petActionBarFrame)
-    characterMicroButton:ClearAllPoints()
-    characterMicroButton:SetPoint("CENTER", mainMenuBar, -(characterMicroButton:GetWidth() * 3.175), -70)
     mainMenuBarBackpackButton:ClearAllPoints()
-    mainMenuBarBackpackButton:SetPoint("CENTER", mainMenuBar, (mainMenuBarBackpackButton:GetWidth() * 2.25), -55)
-    mainMenuBarPageNumber:SetPoint("CENTER", 0, 0)
+    mainMenuBarBackpackButton:SetPoint("CENTER", (mainMenuBarBackpackButton:GetWidth() * 2.25), 0)
+    mainMenuBarPageNumber:SetPoint("CENTER", 0, 80)
     mainMenuExpBar:SetParent(mainMenuBar)
     mainMenuExpBar:ClearAllPoints()
-    mainMenuExpBar:SetPoint("CENTER", mainMenuBar, 0, -4)
+    mainMenuExpBar:SetPoint("CENTER", mainMenuBar, 0, 5)
     mainMenuExpBar:SetWidth(110)
-    petActionBarFrame:SetScale(0.75)
     petActionButton1:ClearAllPoints()
-    petActionButton1:SetPoint("CENTER", mainMenuBar, -(petActionButton1:GetWidth() * 5.71), -155)
+    petActionButton1:SetPoint("CENTER", petActionButtonOwnerFrame, "CENTER", -(petActionButton1:GetWidth() * 5.71), -120)
     reputationWatchBar:ClearAllPoints()
     reputationWatchBar:SetWidth(mainMenuExpBar:GetWidth())
     reputationWatchBar.StatusBar:ClearAllPoints()

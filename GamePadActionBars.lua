@@ -162,7 +162,7 @@ local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("GamePadCameraPitchSpeed", "1.5")              --
     WowApi.ConsoleVariables.SetCVar("GamePadCameraYawSpeed", "2.25")               --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")           --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "1")         -- 0 = never, 1 = on movement, 2 = on cursor or movement
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "2")         -- 0 = never, 1 = on movement, 2 = on cursor or movement
     WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")         --
     WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                 --
@@ -176,8 +176,8 @@ local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("GamePadEmulateShift", "NONE")                 --
     WowApi.ConsoleVariables.SetCVar("GamePadEmulateTapWindowMs", "350")            --
     WowApi.ConsoleVariables.SetCVar("GamePadEnable", "1")                          --
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "105")          -- 0 = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "105")    -- 0 = always, 180 = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "115")          -- 0 = always, 180 = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "115")    -- 0 = always, 180 = never
     WowApi.ConsoleVariables.SetCVar("GamePadFactionColor", "0")                    --
     WowApi.ConsoleVariables.SetCVar("GamePadOverlapMouseMs", "2000")               --
     WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                 --

@@ -14,7 +14,7 @@ These states map to their corresponding action bar page in the World of Warcraft
 
 | GamePad Button Name | State 1 Binding Name    | State 2 Binding Name    | State 3 Binding Name | State 4-5 Binding Name |
 | ------------------- | ----------------------- | ----------------------- | -------------------- | ---------------------- |
-| `PADSELECT`         | **TOGGLEQUESTLOG**      | **TOGGLESOCIAL**        | **TOGGLECHARACTER0** | **TOGGLEQUESTLOG**     |
+| `PADSELECT`         | **TOGGLEWORLDMAP**      | **TOGGLESOCIAL**        | **TOGGLECHARACTER0** | **TOGGLEWORLDMAP**     |
 | `PADSTART`          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU         |
 | `PADDUP`            | ACTIONBUTTON1           | ACTIONBUTTON1           | ACTIONBUTTON1        | ACTIONBUTTON1          |
 | `PADDRIGHT`         | ACTIONBUTTON2           | ACTIONBUTTON2           | ACTIONBUTTON2        | ACTIONBUTTON2          |

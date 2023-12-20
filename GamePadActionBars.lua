@@ -93,8 +93,8 @@ WowApi = {
     },
 }
 
-local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
-local initializeCameraVariables = function()
+local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
+local initializeCameraVariables = function ()
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
     WowApi.ConsoleVariables.SetCVar("CameraKeepCharacterCentered", "0")                       --
@@ -349,14 +349,59 @@ local initializeUserInterface = function ()
         gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
     end
 end
+local function iterateFrameDescendants (parent, callback)
+    for _, child in ipairs({ parent:GetChildren(), }) do
+        callback(child)
+        iterateFrameDescendants(child, callback)
+    end
+end
 local onAddonLoaded = function (key)
     if GamePadActionBarsAddonName == key then
         initializeGamePadBindings()
         initializeUserInterface()
+
+        local cursorFrame = WowApi.Frames.CreateFrame("Frame", nil, UIParent)
+        local cursorTexture = cursorFrame:CreateTexture()
+        local hookedFrames = {
+            --CharacterFrame,
+            --FriendsFrame,
+            GameMenuFrame,
+            --HelpFrame,
+            --QuestLogFrame,
+            --SpellBookFrame,
+            --WorldMapFrame,
+        }
+
+        cursorFrame:ClearAllPoints()
+        cursorFrame:Hide()
+        cursorFrame:SetPoint("CENTER", 0, 0)
+        cursorFrame:SetSize(16, 16)
+        cursorTexture:SetAllPoints(cursorFrame)
+        cursorTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
+
+        for _, parent in pairs(hookedFrames) do
+            local frameHandler = WowApi.Frames.CreateFrame("Frame", (parent:GetName() .. "_GamePadActionBarsHandler"), parent, "SecureHandlerBaseTemplate")
+
+            frameHandler:SetScript("OnShow", function()
+                iterateFrameDescendants(parent, function(child)
+                    if (child:IsMouseClickEnabled() and child:IsShown()) then
+                        ClearOverrideBindings(cursorFrame)
+                        SetOverrideBinding(cursorFrame, true, "PAD2", "TOGGLEGAMEMENU")
+                        SetOverrideBindingClick(cursorFrame, true, "PAD1", child:GetName(), "PAD1")
+                        cursorFrame:ClearAllPoints()
+                        cursorFrame:Show()
+                        cursorFrame:SetParent(child)
+                        cursorFrame:SetPoint("RIGHT", -8, 0)
+                        print(child:GetName())
+                    end
+                end)
+            end)
+        end
+    elseif ("Blizzard_TalentUI" == key) then
     end
 end
 local onFrameEvent = function (...) end
-local onPlayerEnteringWorld = function()
+local onPlayerEnteringWorld = function ()
     initializeCameraVariables()
     initializeGamePadVariables()
     WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
@@ -424,6 +469,9 @@ gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
 gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
 gamePadActionBarsFrame:SetAttribute("type", "actionbar")
+gamePadActionBarsFrame:SetAttribute("_onstate-iscursordragging", [[
+    self:SetAttribute("IsEnabled", not(newstate))
+]])
 gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
     if self:GetAttribute("IsEnabled") then
         local actionButton5 = self:GetFrameRef("ActionButton5")
@@ -488,4 +536,27 @@ gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
     end
 ]])
 
+WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-iscursordragging', '[cursor] true; nil')
 WowApi.UserDefined = userDefinedApi
+
+-- EXPERIMENTAL: debugging driver
+if (false) then
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar1active', '[actionbar:1] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar2active', '[actionbar:2] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar3active', '[actionbar:3] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar4active', '[actionbar:4] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar5active', '[actionbar:5] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar6active', '[actionbar:6] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-ischanneling', '[channeling] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isincombat', '[combat] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isingroup', '[group:party] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isinraid', '[group:raid] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-ismounted', '[mounted] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isresting', '[resting] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isstealthed', '[stealth] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isswimming', '[swimming] true; nil')
+
+    gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnAttributeChanged", [[
+        print("name: " .. name .. " | value: " .. tostring(value))
+    ]])
+end

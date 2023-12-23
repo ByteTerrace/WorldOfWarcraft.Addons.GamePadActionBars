@@ -543,9 +543,6 @@ end
 function WowApi.Player:GetStatusIndicatorColor()
     return (self.IsInCombat and WowApi.Colors.IsNeutral or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsInCombat))
 end
-function WowApi.Timers:After(delay, action, cancellationToken)
-    C_Timer.After(delay, function() if ((nil == cancellationToken) or not(cancellationToken.IsCancellationRequested)) then action() end end)
-end
 function WowApi.Timers:Debounce(delay, action, cancellationToken)
     local ct = ((nil ~= cancellationToken) and cancellationToken or WowApi.Timers:NewCancellationToken())
 
@@ -553,25 +550,42 @@ function WowApi.Timers:Debounce(delay, action, cancellationToken)
         ct.IsCancellationRequested = true
         ct = WowApi.Timers:NewCancellationToken()
 
-        WowApi.Timers:After(delay, action, ct)
+        WowApi.Timers:NewTimer(delay, action, false, ct)
     end
 end
 function WowApi.Timers:NewCancellationToken()
     return { IsCancellationRequested = false, }
 end
-function WowApi.Timers:RepeatAction(delay, action, cancellationToken)
-    WowApi.Timers:After(delay, function() action(); WowApi.Timers:RepeatAction(delay, action, cancellationToken) end, cancellationToken)
+function WowApi.Timers:NewTimer(delay, action, isRepeating, cancellationToken)
+    local timer = {}
+
+    timer.action = action
+    timer.callback = function()
+        if ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested)) then
+            timer.action(timer)
+        end
+
+        if (isRepeating and ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested))) then
+            C_Timer.After(delay, timer.callback)
+        end
+    end
+    timer.cancellationToken = ((nil ~= cancellationToken) and cancellationToken or WowApi.Timers:NewCancellationToken())
+
+    C_Timer.After(delay, timer.callback)
+
+    return timer
 end
-function WowApi.Timers:RepeatActionUntil(delay, action, predicate, cancellationToken)
-    WowApi.Timers:RepeatAction(
+function WowApi.Timers:RepeatUntil(delay, action, predicate, cancellationToken)
+    return WowApi.Timers:NewTimer(
         delay,
-        function()
+        function (timer)
             if ((predicate == nil) or predicate()) then
                 action()
             else
-                cancellationToken.IsCancellationRequested = true
+                timer.cancellationToken.IsCancellationRequested = true
             end
         end,
+        true,
         cancellationToken
     )
 end

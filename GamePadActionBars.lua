@@ -20,6 +20,41 @@ local GamePadActionBarsPadStartState3Binding = "TOGGLEGAMEMENU"
 local GamePadVendorIdDualSense = 1356
 local GamePadVendorIdNintendoSwitchPro = 1406
 local GamePadVendorIdXboxSeriesX = 1118
+local SecureGetFrameDescendants = [[
+    local children = table.new()
+    local parentFrameName = ...
+    local parentFrameRef = self:GetFrameRef(parentFrameName)
+
+    parentFrameRef:GetChildList(children)
+
+    if (0 < #children) then
+        local descendants = table.new()
+        local index = 0
+        local stack = table.new(children)
+
+        while (0 < #stack) do
+            children = table.remove(stack, #stack)
+
+            for _, child in ipairs(children) do
+                children = table.new()
+                descendants[index] = child
+                index = (index + 1)
+
+                child:GetChildList(children)
+
+                if (0 < #children) then
+                    stack[(#stack + 1)] = children
+                end
+            end
+        end
+
+        _G[(parentFrameName .. "Descendants")] = descendants
+
+        if (nil ~= owner:GetAttribute("OnGetFrameDescendants")) then
+            owner:RunAttribute("OnGetFrameDescendants", (parentFrameName .. "Descendants"))
+        end
+    end
+]]
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -27,6 +62,7 @@ WowApi = {
         CreateColorFromBytes = CreateColorFromBytes,
     },
     Frames = {
+        ClearOverrideBindings = ClearOverrideBindings,
         CreateFrame = CreateFrame,
         RegisterAttributeDriver = RegisterAttributeDriver,
         SetOverrideBinding = SetOverrideBinding,
@@ -94,6 +130,7 @@ WowApi = {
 }
 
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
+local gamePadCursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
 local initializeCameraVariables = function ()
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
@@ -183,6 +220,40 @@ local initializeGamePadBindings = function ()
     WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
+end
+local initializeGamePadCursor = function ()
+    local gamePadCursorFrameTexture = gamePadCursorFrame:CreateTexture()
+    local hookedFrames = {
+        CharacterFrame,
+        FriendsFrame,
+        GameMenuFrame,
+        HelpFrame,
+        QuestLogFrame,
+        SpellBookFrame,
+        WorldMapFrame,
+    }
+
+    gamePadCursorFrame:ClearAllPoints()
+    gamePadCursorFrame:Hide()
+    gamePadCursorFrame:SetAttribute("GetFrameDescendants", SecureGetFrameDescendants)
+    gamePadCursorFrame:SetAttribute("OnGetFrameDescendants", [[
+        local frameDescendantsRef = ...
+
+        for _, descendant in pairs(_G[frameDescendantsRef]) do
+            print(descendant:GetName())
+        end
+    ]])
+    gamePadCursorFrame:SetPoint("CENTER", 0, 0)
+    gamePadCursorFrame:SetSize(16, 16)
+    gamePadCursorFrameTexture:SetAllPoints(gamePadCursorFrame)
+    gamePadCursorFrameTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
+
+    for _, frame in pairs(hookedFrames) do
+        local frameName = frame:GetName()
+
+        gamePadCursorFrame:SetFrameRef(frameName, frame)
+        gamePadCursorFrame:Execute("owner:RunAttribute(\"GetFrameDescendants\", \"" .. frameName .. "\")")
+    end
 end
 local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                  --
@@ -349,55 +420,11 @@ local initializeUserInterface = function ()
         gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
     end
 end
-local function iterateFrameDescendants (parent, callback)
-    for _, child in ipairs({ parent:GetChildren(), }) do
-        callback(child)
-        iterateFrameDescendants(child, callback)
-    end
-end
 local onAddonLoaded = function (key)
     if GamePadActionBarsAddonName == key then
         initializeGamePadBindings()
+        initializeGamePadCursor()
         initializeUserInterface()
-
-        local cursorFrame = WowApi.Frames.CreateFrame("Frame", nil, UIParent)
-        local cursorTexture = cursorFrame:CreateTexture()
-        local hookedFrames = {
-            --CharacterFrame,
-            --FriendsFrame,
-            GameMenuFrame,
-            --HelpFrame,
-            --QuestLogFrame,
-            --SpellBookFrame,
-            --WorldMapFrame,
-        }
-
-        cursorFrame:ClearAllPoints()
-        cursorFrame:Hide()
-        cursorFrame:SetPoint("CENTER", 0, 0)
-        cursorFrame:SetSize(16, 16)
-        cursorTexture:SetAllPoints(cursorFrame)
-        cursorTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
-
-        for _, parent in pairs(hookedFrames) do
-            local frameHandler = WowApi.Frames.CreateFrame("Frame", (parent:GetName() .. "_GamePadActionBarsHandler"), parent, "SecureHandlerBaseTemplate")
-
-            frameHandler:SetScript("OnShow", function()
-                iterateFrameDescendants(parent, function(child)
-                    if (child:IsMouseClickEnabled() and child:IsShown()) then
-                        ClearOverrideBindings(cursorFrame)
-                        SetOverrideBinding(cursorFrame, true, "PAD2", "TOGGLEGAMEMENU")
-                        SetOverrideBindingClick(cursorFrame, true, "PAD1", child:GetName(), "PAD1")
-                        cursorFrame:ClearAllPoints()
-                        cursorFrame:Show()
-                        cursorFrame:SetParent(child)
-                        cursorFrame:SetPoint("RIGHT", -8, 0)
-                        print(child:GetName())
-                    end
-                end)
-            end)
-        end
-    elseif ("Blizzard_TalentUI" == key) then
     end
 end
 local onFrameEvent = function (...) end

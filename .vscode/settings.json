@@ -10,6 +10,7 @@
         "CreateFrame",
         "C_CVar",
         "C_GamePad",
+        "C_Timer",
         "FramerateText",
         "GetScreenHeight",
         "GetScreenWidth",

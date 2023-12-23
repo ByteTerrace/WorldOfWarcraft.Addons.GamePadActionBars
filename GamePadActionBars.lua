@@ -95,9 +95,6 @@ WowApi = {
     },
 }
 
-local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
-local gamePadCursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
-
 local initializeCameraVariables = function ()
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
@@ -117,7 +114,121 @@ local initializeCameraVariables = function ()
     WowApi.UserInterface.Camera.ZoomIn(1.25)
     WowApi.UserInterface.SaveView(5)
 end
-local initializeGamePadBindings = function ()
+local initializeGamePadVariables = function ()
+    WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                  --
+    WowApi.ConsoleVariables.SetCVar("GamePadCameraPitchSpeed", "1.5")              --
+    WowApi.ConsoleVariables.SetCVar("GamePadCameraYawSpeed", "2.25")               --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")           --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "2")         -- 0 = never, 1 = on movement, 2 = on cursor or movement
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")         --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                 --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "0")              --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorLeftClick", "NONE")              --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorOnLogin", "1")                   --
+    WowApi.ConsoleVariables.SetCVar("GamePadCursorRightClick", "NONE")             --
+    WowApi.ConsoleVariables.SetCVar("GamePadEmulateAlt", "NONE")                   --
+    WowApi.ConsoleVariables.SetCVar("GamePadEmulateEsc'", "NONE")                  --
+    WowApi.ConsoleVariables.SetCVar("GamePadEmulateCtrl", "NONE")                  --
+    WowApi.ConsoleVariables.SetCVar("GamePadEmulateShift", "NONE")                 --
+    WowApi.ConsoleVariables.SetCVar("GamePadEmulateTapWindowMs", "350")            --
+    WowApi.ConsoleVariables.SetCVar("GamePadEnable", "1")                          --
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "115")          -- 0 = always, 180 = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "115")    -- 0 = always, 180 = never
+    WowApi.ConsoleVariables.SetCVar("GamePadFactionColor", "0")                    --
+    WowApi.ConsoleVariables.SetCVar("GamePadOverlapMouseMs", "2000")               --
+    WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                 --
+    WowApi.ConsoleVariables.SetCVar("GamePadStickAxisButtons", "0")                --
+    WowApi.ConsoleVariables.SetCVar("GamePadTankTurnSpeed", "0.0")                 --
+    WowApi.ConsoleVariables.SetCVar("GamePadTouchCursorEnable", "0")               --
+    WowApi.ConsoleVariables.SetCVar("GamePadTurnWithCamera", "2")                  -- 0 = never, 1 = while in combat, 2 = always
+    WowApi.ConsoleVariables.SetCVar("GamePadVibrationStrength", "1")               --
+    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemy", "1")                        -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
+    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyArc", "1")                     -- 0 = never, 1 = within arc, 2 = anywhere
+    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyRange", "30.0")                --
+    WowApi.ConsoleVariables.SetCVar("SoftTargetFriend", "1")                       -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
+    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendArc", "1")                    -- 0 = never, 1 = within arc, 2 = anywhere
+    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendRange", "10.0")               --
+    WowApi.ConsoleVariables.SetCVar("SoftTargetForce", "0")                        -- 0 = never, 1 = enemies, 2 = friends
+    WowApi.ConsoleVariables.SetCVar("SoftTargetInteract", "1")                     -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
+    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractArc", "1")                  -- 0 = never, 1 = within arc, 2 = anywhere
+    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")              --
+end
+local onAddonLoaded = function (key)
+    if (GamePadActionBarsAddonName == key) then
+        local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
+
+        WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
+        WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
+        WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
+    end
+end
+local onFrameEvent = function (...) end
+local onPlayerEnteringWorld = function ()
+    initializeCameraVariables()
+    initializeGamePadVariables()
+    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
+end
+local onPlayerFlagsChanged = function ()
+    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
+    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
+end
+local onPlayerInteractionManagerShow = function() end
+local onPlayerRegenDisabled = function ()
+    WowApi.Player.IsInCombat = true
+    WowApi.GamePad.SetVibration("High", 1.0)
+    onPlayerFlagsChanged()
+end
+local onPlayerRegenEnabled = function ()
+    WowApi.Player.IsInCombat = false
+    WowApi.GamePad.SetVibration("Low", 0.5)
+    onPlayerFlagsChanged()
+end
+
+WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
+WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
+WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+WowApi.Events = {
+    HandlerMap = {
+        ADDON_LOADED = onAddonLoaded,
+        PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
+        PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
+        PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
+        PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
+        PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
+    },
+    RegisterEvent = function (_, eventName) WowApi.GamePad.ActionBarsFrame:RegisterEvent(eventName) end,
+    SetHandler = function (_, functor) onFrameEvent = functor end,
+}
+WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
+WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
+
+function WowApi.Frames:GetDescendants(parent)
+    local children = { parent:GetChildren(), }
+    local descendants = {}
+
+    if (0 < #children) then
+        local index = 0
+        local stack = { children, }
+
+        while (0 < #stack) do
+            children = table.remove(stack, #stack)
+
+            for _, child in ipairs(children) do
+                children = { child:GetChildren(), }
+                descendants[index] = child
+                index = (index + 1)
+
+                if (0 < #children) then
+                    stack[(#stack + 1)] = children
+                end
+            end
+        end
+    end
+
+    return descendants
+end
+function WowApi.GamePad:InitializeBindings(frame)
     local isDualSenseControllerConnected = false
     local isNintendoSwitchProControllerConnected = false
     local isXboxControllerConnected = false
@@ -156,89 +267,55 @@ local initializeGamePadBindings = function ()
         GamePadActionBarsCustomPadNameStart = "PADFORWARD"
     end
 
-    gamePadActionBarsFrame:SetAttribute("CustomPadName-Select", GamePadActionBarsCustomPadNameSelect)
-    gamePadActionBarsFrame:SetAttribute("CustomPadName-Start", GamePadActionBarsCustomPadNameStart)
-    gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State1", GamePadActionBarsPadSelectState1Binding)
-    gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State2", GamePadActionBarsPadSelectState2Binding)
-    gamePadActionBarsFrame:SetAttribute("PadSelectBinding-State3", GamePadActionBarsPadSelectState3Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State1", GamePadActionBarsPadLshoulderState1Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State2", GamePadActionBarsPadLshoulderState2Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderLeftBinding-State3", GamePadActionBarsPadLshoulderState3Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State1", GamePadActionBarsPadRshoulderState1Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State2", GamePadActionBarsPadRshoulderState2Binding)
-    gamePadActionBarsFrame:SetAttribute("PadShoulderRightBinding-State3", GamePadActionBarsPadRshoulderState3Binding)
-    gamePadActionBarsFrame:SetAttribute("PadStartBinding-State1", GamePadActionBarsPadStartState1Binding)
-    gamePadActionBarsFrame:SetAttribute("PadStartBinding-State2", GamePadActionBarsPadStartState2Binding)
-    gamePadActionBarsFrame:SetAttribute("PadStartBinding-State3", GamePadActionBarsPadStartState3Binding)
+    frame:SetAttribute("CustomPadName-Select", GamePadActionBarsCustomPadNameSelect)
+    frame:SetAttribute("CustomPadName-Start", GamePadActionBarsCustomPadNameStart)
+    frame:SetAttribute("PadSelectBinding-State1", GamePadActionBarsPadSelectState1Binding)
+    frame:SetAttribute("PadSelectBinding-State2", GamePadActionBarsPadSelectState2Binding)
+    frame:SetAttribute("PadSelectBinding-State3", GamePadActionBarsPadSelectState3Binding)
+    frame:SetAttribute("PadShoulderLeftBinding-State1", GamePadActionBarsPadLshoulderState1Binding)
+    frame:SetAttribute("PadShoulderLeftBinding-State2", GamePadActionBarsPadLshoulderState2Binding)
+    frame:SetAttribute("PadShoulderLeftBinding-State3", GamePadActionBarsPadLshoulderState3Binding)
+    frame:SetAttribute("PadShoulderRightBinding-State1", GamePadActionBarsPadRshoulderState1Binding)
+    frame:SetAttribute("PadShoulderRightBinding-State2", GamePadActionBarsPadRshoulderState2Binding)
+    frame:SetAttribute("PadShoulderRightBinding-State3", GamePadActionBarsPadRshoulderState3Binding)
+    frame:SetAttribute("PadStartBinding-State1", GamePadActionBarsPadStartState1Binding)
+    frame:SetAttribute("PadStartBinding-State2", GamePadActionBarsPadStartState2Binding)
+    frame:SetAttribute("PadStartBinding-State3", GamePadActionBarsPadStartState3Binding)
 
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, GamePadActionBarsCustomPadNameSelect, GamePadActionBarsPadSelectState1Binding)
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, GamePadActionBarsCustomPadNameStart, GamePadActionBarsPadStartState1Binding)
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADDLEFT", "ACTIONBUTTON4")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSHOULDER", GamePadActionBarsPadLshoulderState1Binding)
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADLSTICK", "ACTIONBUTTON6")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD4", "ACTIONBUTTON7")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD1", "JUMP")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSHOULDER", GamePadActionBarsPadRshoulderState1Binding)
-    WowApi.Frames.SetOverrideBinding(gamePadActionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
-    WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADLTRIGGER", gamePadActionBarsFrame:GetName(), "PADLTRIGGER")
-    WowApi.Frames.SetOverrideBindingClick(gamePadActionBarsFrame, true, "PADRTRIGGER", gamePadActionBarsFrame:GetName(), "PADRTRIGGER")
+    WowApi.Frames.SetOverrideBinding(frame, true, GamePadActionBarsCustomPadNameSelect, GamePadActionBarsPadSelectState1Binding)
+    WowApi.Frames.SetOverrideBinding(frame, true, GamePadActionBarsCustomPadNameStart, GamePadActionBarsPadStartState1Binding)
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADDUP", "ACTIONBUTTON1")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADDRIGHT", "ACTIONBUTTON2")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADDDOWN", "ACTIONBUTTON3")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADDLEFT", "ACTIONBUTTON4")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADLSHOULDER", GamePadActionBarsPadLshoulderState1Binding)
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADLSTICK", "ACTIONBUTTON6")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PAD4", "ACTIONBUTTON7")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PAD3", "ACTIONBUTTON8")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PAD1", "JUMP")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PAD2", "ACTIONBUTTON10")
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADRSHOULDER", GamePadActionBarsPadRshoulderState1Binding)
+    WowApi.Frames.SetOverrideBinding(frame, true, "PADRSTICK", "ACTIONBUTTON12")
+    WowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
+    WowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
-local initializeGamePadCursor = function ()
-    local gamePadCursorFrameTexture = gamePadCursorFrame:CreateTexture()
-    local hookedFrames = {
-        CharacterFrame,
-        FriendsFrame,
-        GameMenuFrame,
-        HelpFrame,
-        QuestLogFrame,
-        SpellBookFrame,
-        WorldMapFrame,
-    }
-
-    gamePadCursorFrame:ClearAllPoints()
-    gamePadCursorFrame:Hide()
-    gamePadCursorFrame:SetPoint("CENTER", 0, 0)
-    gamePadCursorFrame:SetSize(16, 16)
-    gamePadCursorFrameTexture:SetAllPoints(gamePadCursorFrame)
-    gamePadCursorFrameTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
-
-    for _, frame in pairs(hookedFrames) do
-        local cancellationToken = WowApi.Timers:NewCancellationToken()
-        local visibilityHandler = WowApi.Frames.CreateFrame("Frame", (frame:GetName() .. "VisibilityHandler"), frame, "SecureHandlerShowHideTemplate")
-
-        visibilityHandler:SetScript("OnShow", function (self)
-            if not(WowApi.Player.IsInCombat) then
-                local descendants = WowApi.Frames:GetDescendants(self:GetParent())
-
-                for _, v in pairs(descendants) do
-                    print(v:GetName())
-                end
-            end
-        end)
-    end
-end
-local initializeGamePadDriver = function ()
-    gamePadActionBarsFrame:EnableGamePadButton(true)
-    gamePadActionBarsFrame:RegisterForClicks("AnyDown", "AnyUp")
-    gamePadActionBarsFrame:SetAttribute("action", 1)
-    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State1", 1)
-    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
-    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
-    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
-    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
-    gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
-    gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
-    gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
-    gamePadActionBarsFrame:SetAttribute("type", "actionbar")
-    gamePadActionBarsFrame:SetAttribute("_onstate-iscursordragging", [[
+function WowApi.GamePad:InitializeDriver(frame)
+    frame:EnableGamePadButton(true)
+    frame:RegisterForClicks("AnyDown", "AnyUp")
+    frame:SetAttribute("action", 1)
+    frame:SetAttribute("ActionBarPage-State1", 1)
+    frame:SetAttribute("ActionBarPage-State2", 2)
+    frame:SetAttribute("ActionBarPage-State3", 3)
+    frame:SetAttribute("ActionBarPage-State4", 4)
+    frame:SetAttribute("ActionBarPage-State5", 5)
+    frame:SetAttribute("IsEnabled", true)
+    frame:SetAttribute("PadTriggerLeft-IsDown", false)
+    frame:SetAttribute("PadTriggerRight-IsDown", false)
+    frame:SetAttribute("type", "actionbar")
+    frame:SetAttribute("_onstate-iscursordragging", [[
         self:SetAttribute("IsEnabled", not(newstate))
     ]])
-    gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
+    frame:WrapScript(frame, "OnClick", [[
         if self:GetAttribute("IsEnabled") then
             local actionButton5 = self:GetFrameRef("ActionButton5")
             local actionButton9 = self:GetFrameRef("ActionButton9")
@@ -302,49 +379,9 @@ local initializeGamePadDriver = function ()
         end
     ]])
 
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-iscursordragging', '[cursor] true; nil')
+    WowApi.Frames.RegisterAttributeDriver(frame, 'state-iscursordragging', '[cursor] true; nil')
 end
-local initializeGamePadVariables = function ()
-    WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadCameraPitchSpeed", "1.5")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCameraYawSpeed", "2.25")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")           --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "2")         -- 0 = never, 1 = on movement, 2 = on cursor or movement
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")         --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "0")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorLeftClick", "NONE")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorOnLogin", "1")                   --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorRightClick", "NONE")             --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateAlt", "NONE")                   --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateEsc'", "NONE")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateCtrl", "NONE")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateShift", "NONE")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateTapWindowMs", "350")            --
-    WowApi.ConsoleVariables.SetCVar("GamePadEnable", "1")                          --
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "115")          -- 0 = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "115")    -- 0 = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFactionColor", "0")                    --
-    WowApi.ConsoleVariables.SetCVar("GamePadOverlapMouseMs", "2000")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadStickAxisButtons", "0")                --
-    WowApi.ConsoleVariables.SetCVar("GamePadTankTurnSpeed", "0.0")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadTouchCursorEnable", "0")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadTurnWithCamera", "2")                  -- 0 = never, 1 = while in combat, 2 = always
-    WowApi.ConsoleVariables.SetCVar("GamePadVibrationStrength", "1")               --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemy", "1")                        -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyArc", "1")                     -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyRange", "30.0")                --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriend", "1")                       -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendArc", "1")                    -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendRange", "10.0")               --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetForce", "0")                        -- 0 = never, 1 = enemies, 2 = friends
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteract", "1")                     -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractArc", "1")                  -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")              --
-end
-local initializeUserInterface = function ()
+function WowApi.GamePad:InitializeUserInterface(frame)
     -- base frames
     local castingBarFrame = WowApi.UserInterface.ModifiedFrames.CastingBarFrame
     local characterMicroButton = WowApi.UserInterface.ModifiedFrames.CharacterMicroButton
@@ -418,8 +455,8 @@ local initializeUserInterface = function ()
     reputationWatchBar.StatusBar:SetPoint("TOP", mainMenuExpBar, 0, reputationWatchBar.StatusBar:GetHeight())
     reputationWatchBar.StatusBar:SetWidth(reputationWatchBar:GetWidth())
 
-    for _, frame in pairs(WowApi.UserInterface.HiddenFrames) do
-        frame:SetParent(gamePadActionBarsFrame)
+    for _, hiddenFrame in pairs(WowApi.UserInterface.HiddenFrames) do
+        hiddenFrame:SetParent(frame)
     end
 
     for i = 0, 35 do
@@ -466,79 +503,8 @@ local initializeUserInterface = function ()
             gamePadIconFrame:Hide()
         end
 
-        gamePadActionBarsFrame:SetFrameRef(actionButton:GetName(), actionButton)
+        frame:SetFrameRef(actionButton:GetName(), actionButton)
     end
-end
-local onAddonLoaded = function (key)
-    if (GamePadActionBarsAddonName == key) then
-        initializeGamePadBindings()
-        initializeGamePadCursor()
-        initializeGamePadDriver()
-        initializeUserInterface()
-    end
-end
-local onFrameEvent = function (...) end
-local onPlayerEnteringWorld = function ()
-    initializeCameraVariables()
-    initializeGamePadVariables()
-    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
-end
-local onPlayerFlagsChanged = function ()
-    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
-    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
-end
-local onPlayerInteractionManagerShow = function() end
-local onPlayerRegenDisabled = function ()
-    WowApi.Player.IsInCombat = true
-    WowApi.GamePad.SetVibration("High", 1.0)
-    onPlayerFlagsChanged()
-end
-local onPlayerRegenEnabled = function ()
-    WowApi.Player.IsInCombat = false
-    WowApi.GamePad.SetVibration("Low", 0.5)
-    onPlayerFlagsChanged()
-end
-
-WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
-WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
-WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
-WowApi.Events = {
-    HandlerMap = {
-        ADDON_LOADED = onAddonLoaded,
-        PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
-        PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
-        PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
-        PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
-        PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
-    },
-    RegisterEvent = function (_, eventName) gamePadActionBarsFrame:RegisterEvent(eventName) end,
-    SetHandler = function (_, functor) onFrameEvent = functor end,
-}
-
-function WowApi.Frames:GetDescendants(parent)
-    local children = { parent:GetChildren(), }
-    local descendants = {}
-
-    if (0 < #children) then
-        local index = 0
-        local stack = { children, }
-
-        while (0 < #stack) do
-            children = table.remove(stack, #stack)
-
-            for _, child in ipairs(children) do
-                children = { child:GetChildren(), }
-                descendants[index] = child
-                index = (index + 1)
-
-                if (0 < #children) then
-                    stack[(#stack + 1)] = children
-                end
-            end
-        end
-    end
-
-    return descendants
 end
 function WowApi.Player:GetStatusIndicatorColor()
     return (self.IsInCombat and WowApi.Colors.IsNeutral or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsInCombat))
@@ -590,10 +556,9 @@ function WowApi.Timers:RepeatUntil(delay, action, predicate, cancellationToken)
     )
 end
 
-gamePadActionBarsFrame:Hide()
-gamePadActionBarsFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
-
 WowApi.Events:SetHandler(function (_, eventName, ...) WowApi.Events.HandlerMap[eventName](...) end)
+WowApi.GamePad.ActionBarsFrame:Hide()
+WowApi.GamePad.ActionBarsFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
 
 for eventName, _ in pairs(WowApi.Events.HandlerMap) do
     WowApi.Events:RegisterEvent(eventName)

@@ -157,8 +157,10 @@ end
 local onAddonLoaded = function (key)
     if (GamePadActionBarsAddonName == key) then
         local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
+        local gamePadCursorFrame = WowApi.GamePad.CursorFrame
 
         WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
+        WowApi.GamePad:InitializeCursor(gamePadCursorFrame)
         WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
         WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
     end
@@ -233,8 +235,8 @@ function WowApi.GamePad:InitializeBindings(frame)
     local isNintendoSwitchProControllerConnected = false
     local isXboxControllerConnected = false
 
-    for deviceId in ipairs(WowApi.GamePad:GetAllDeviceIDs()) do
-        local _, rawState = pcall(WowApi.GamePad.GetDeviceRawState, deviceId)
+    for deviceId in ipairs(self:GetAllDeviceIDs()) do
+        local _, rawState = pcall(self.GetDeviceRawState, deviceId)
 
         if (nil ~= rawState) then
             if (GamePadVendorIdDualSense == rawState.vendorID) then
@@ -299,6 +301,7 @@ function WowApi.GamePad:InitializeBindings(frame)
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
+function WowApi.GamePad:InitializeCursor(_) end
 function WowApi.GamePad:InitializeDriver(frame)
     frame:EnableGamePadButton(true)
     frame:RegisterForClicks("AnyDown", "AnyUp")
@@ -510,13 +513,13 @@ function WowApi.Player:GetStatusIndicatorColor()
     return (self.IsInCombat and WowApi.Colors.IsNeutral or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsInCombat))
 end
 function WowApi.Timers:Debounce(delay, action, cancellationToken)
-    local ct = ((nil ~= cancellationToken) and cancellationToken or WowApi.Timers:NewCancellationToken())
+    local ct = ((nil ~= cancellationToken) and cancellationToken or self:NewCancellationToken())
 
     return function ()
         ct.IsCancellationRequested = true
-        ct = WowApi.Timers:NewCancellationToken()
+        ct = self:NewCancellationToken()
 
-        WowApi.Timers:NewTimer(delay, action, false, ct)
+        self:NewTimer(delay, action, false, ct)
     end
 end
 function WowApi.Timers:NewCancellationToken()
@@ -535,14 +538,14 @@ function WowApi.Timers:NewTimer(delay, action, isRepeating, cancellationToken)
             C_Timer.After(delay, timer.callback)
         end
     end
-    timer.cancellationToken = ((nil ~= cancellationToken) and cancellationToken or WowApi.Timers:NewCancellationToken())
+    timer.cancellationToken = ((nil ~= cancellationToken) and cancellationToken or self:NewCancellationToken())
 
     C_Timer.After(delay, timer.callback)
 
     return timer
 end
 function WowApi.Timers:RepeatUntil(delay, action, predicate, cancellationToken)
-    return WowApi.Timers:NewTimer(
+    return self:NewTimer(
         delay,
         function (timer)
             if ((predicate == nil) or predicate()) then

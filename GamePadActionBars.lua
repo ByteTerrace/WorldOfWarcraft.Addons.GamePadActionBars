@@ -20,41 +20,6 @@ local GamePadActionBarsPadStartState3Binding = "TOGGLEGAMEMENU"
 local GamePadVendorIdDualSense = 1356
 local GamePadVendorIdNintendoSwitchPro = 1406
 local GamePadVendorIdXboxSeriesX = 1118
-local SecureGetFrameDescendants = [[
-    local children = table.new()
-    local parentFrameName = ...
-    local parentFrameRef = self:GetFrameRef(parentFrameName)
-
-    parentFrameRef:GetChildList(children)
-
-    if (0 < #children) then
-        local descendants = table.new()
-        local index = 0
-        local stack = table.new(children)
-
-        while (0 < #stack) do
-            children = table.remove(stack, #stack)
-
-            for _, child in ipairs(children) do
-                children = table.new()
-                descendants[index] = child
-                index = (index + 1)
-
-                child:GetChildList(children)
-
-                if (0 < #children) then
-                    stack[(#stack + 1)] = children
-                end
-            end
-        end
-
-        _G[(parentFrameName .. "Descendants")] = descendants
-
-        if (nil ~= owner:GetAttribute("OnGetFrameDescendants")) then
-            owner:RunAttribute("OnGetFrameDescendants", (parentFrameName .. "Descendants"))
-        end
-    end
-]]
 
 WowApi = {
     ConsoleVariables = C_CVar,
@@ -70,9 +35,10 @@ WowApi = {
     },
     GamePad = C_GamePad,
     Player = {
-        IsAwayFromKeyboard = IsChatAFK,
-        IsInCombat = InCombatLockdown,
+        IsAwayFromKeyboard = IsChatAFK(),
+        IsInCombat = InCombatLockdown(),
     },
+    Timers = {},
     UserInterface = {
         Camera = {
             ZoomIn = CameraZoomIn,
@@ -131,6 +97,7 @@ WowApi = {
 
 local gamePadActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
 local gamePadCursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
+
 local initializeCameraVariables = function ()
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
@@ -235,25 +202,107 @@ local initializeGamePadCursor = function ()
 
     gamePadCursorFrame:ClearAllPoints()
     gamePadCursorFrame:Hide()
-    gamePadCursorFrame:SetAttribute("GetFrameDescendants", SecureGetFrameDescendants)
-    gamePadCursorFrame:SetAttribute("OnGetFrameDescendants", [[
-        local frameDescendantsRef = ...
-
-        for _, descendant in pairs(_G[frameDescendantsRef]) do
-            print(descendant:GetName())
-        end
-    ]])
     gamePadCursorFrame:SetPoint("CENTER", 0, 0)
     gamePadCursorFrame:SetSize(16, 16)
     gamePadCursorFrameTexture:SetAllPoints(gamePadCursorFrame)
     gamePadCursorFrameTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
 
     for _, frame in pairs(hookedFrames) do
-        local frameName = frame:GetName()
+        local cancellationToken = WowApi.Timers:NewCancellationToken()
+        local visibilityHandler = WowApi.Frames.CreateFrame("Frame", (frame:GetName() .. "VisibilityHandler"), frame, "SecureHandlerShowHideTemplate")
 
-        gamePadCursorFrame:SetFrameRef(frameName, frame)
-        gamePadCursorFrame:Execute("owner:RunAttribute(\"GetFrameDescendants\", \"" .. frameName .. "\")")
+        visibilityHandler:SetScript("OnShow", function (self)
+            if not(WowApi.Player.IsInCombat) then
+                local descendants = WowApi.Frames:GetDescendants(self:GetParent())
+
+                for _, v in pairs(descendants) do
+                    print(v:GetName())
+                end
+            end
+        end)
     end
+end
+local initializeGamePadDriver = function ()
+    gamePadActionBarsFrame:EnableGamePadButton(true)
+    gamePadActionBarsFrame:RegisterForClicks("AnyDown", "AnyUp")
+    gamePadActionBarsFrame:SetAttribute("action", 1)
+    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State1", 1)
+    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
+    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
+    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
+    gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
+    gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
+    gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
+    gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
+    gamePadActionBarsFrame:SetAttribute("type", "actionbar")
+    gamePadActionBarsFrame:SetAttribute("_onstate-iscursordragging", [[
+        self:SetAttribute("IsEnabled", not(newstate))
+    ]])
+    gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
+        if self:GetAttribute("IsEnabled") then
+            local actionButton5 = self:GetFrameRef("ActionButton5")
+            local actionButton9 = self:GetFrameRef("ActionButton9")
+            local actionButton11 = self:GetFrameRef("ActionButton11")
+
+            if (down) then
+                actionButton9:SetAlpha(1.0)
+                actionButton9:Show()
+                self:SetBindingClick(true, "PAD1", actionButton9)
+
+                if "PADLTRIGGER" == button then
+                    self:SetAttribute("PadTriggerLeft-IsDown", true)
+
+                    if self:GetAttribute("PadTriggerRight-IsDown") then
+                        actionButton5:SetAlpha(1.0)
+                        actionButton5:Show()
+                        actionButton11:SetAlpha(1.0)
+                        actionButton11:Show()
+                        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State4"))
+                        self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                        self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                    else
+                        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
+                        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
+                        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
+                        self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State2"))
+                        self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State2"))
+                    end
+                else
+                    self:SetAttribute("PadTriggerRight-IsDown", true)
+
+                    if self:GetAttribute("PadTriggerLeft-IsDown") then
+                        actionButton5:SetAlpha(1.0)
+                        actionButton5:Show()
+                        actionButton11:SetAlpha(1.0)
+                        actionButton11:Show()
+                        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State5"))
+                        self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                        self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                    else
+                        self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
+                        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
+                        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
+                        self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State3"))
+                        self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State3"))
+                    end
+                end
+            else
+                actionButton5:SetAlpha(0.0)
+                actionButton9:SetAlpha(0.0)
+                actionButton11:SetAlpha(0.0)
+                self:SetAttribute("action", self:GetAttribute("ActionBarPage-State1"))
+                self:SetAttribute("PadTriggerLeft-IsDown", false)
+                self:SetAttribute("PadTriggerRight-IsDown", false)
+                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
+                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
+                self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State1"))
+                self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State1"))
+                self:SetBinding(true, "PAD1", "JUMP")
+            end
+        end
+    ]])
+
+    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-iscursordragging', '[cursor] true; nil')
 end
 local initializeGamePadVariables = function ()
     WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                  --
@@ -421,9 +470,10 @@ local initializeUserInterface = function ()
     end
 end
 local onAddonLoaded = function (key)
-    if GamePadActionBarsAddonName == key then
+    if (GamePadActionBarsAddonName == key) then
         initializeGamePadBindings()
         initializeGamePadCursor()
+        initializeGamePadDriver()
         initializeUserInterface()
     end
 end
@@ -431,159 +481,106 @@ local onFrameEvent = function (...) end
 local onPlayerEnteringWorld = function ()
     initializeCameraVariables()
     initializeGamePadVariables()
-    WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
+    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
 end
 local onPlayerFlagsChanged = function ()
-    WowApi.UserDefined.Player.IsAwayFromKeyboard = WowApi.Player.IsAwayFromKeyboard()
-    WowApi.GamePad.SetLedColor(WowApi.UserDefined.Player:GetStatusIndicatorColor())
+    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
+    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
 end
 local onPlayerInteractionManagerShow = function() end
 local onPlayerRegenDisabled = function ()
-    WowApi.UserDefined.Player.IsInCombat = true
+    WowApi.Player.IsInCombat = true
     WowApi.GamePad.SetVibration("High", 1.0)
     onPlayerFlagsChanged()
 end
 local onPlayerRegenEnabled = function ()
-    WowApi.UserDefined.Player.IsInCombat = false
+    WowApi.Player.IsInCombat = false
     WowApi.GamePad.SetVibration("Low", 0.5)
     onPlayerFlagsChanged()
 end
-local userDefinedApi = {
-    Colors = {
-        IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255),
-        IsInCombatFalse = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255),
-        IsInCombatTrue = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+
+WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
+WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
+WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+WowApi.Events = {
+    HandlerMap = {
+        ADDON_LOADED = onAddonLoaded,
+        PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
+        PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
+        PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
+        PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
+        PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
     },
-    Events = {
-        RegisterEvent = function (_, eventName) gamePadActionBarsFrame:RegisterEvent(eventName) end,
-        SetHandler = function (_, functor) onFrameEvent = functor end,
-    },
-    Player = {
-        IsAwayFromKeyboard = WowApi.Player.IsAwayFromKeyboard(),
-        IsInCombat = WowApi.Player.IsInCombat(),
-    },
-}
-local userDefinedEventHandlerMap = {
-    ADDON_LOADED = onAddonLoaded,
-    PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
-    PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
-    PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
-    PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
-    PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
+    RegisterEvent = function (_, eventName) gamePadActionBarsFrame:RegisterEvent(eventName) end,
+    SetHandler = function (_, functor) onFrameEvent = functor end,
 }
 
-function userDefinedApi.Player:GetStatusIndicatorColor()
-    return (self.IsInCombat and WowApi.UserDefined.Colors.IsInCombatTrue or (self.IsAwayFromKeyboard and WowApi.UserDefined.Colors.IsAwayFromKeyboard or WowApi.UserDefined.Colors.IsInCombatFalse))
+function WowApi.Frames:GetDescendants(parent)
+    local children = { parent:GetChildren(), }
+    local descendants = {}
+
+    if (0 < #children) then
+        local index = 0
+        local stack = { children, }
+
+        while (0 < #stack) do
+            children = table.remove(stack, #stack)
+
+            for _, child in ipairs(children) do
+                children = { child:GetChildren(), }
+                descendants[index] = child
+                index = (index + 1)
+
+                if (0 < #children) then
+                    stack[(#stack + 1)] = children
+                end
+            end
+        end
+    end
+
+    return descendants
+end
+function WowApi.Player:GetStatusIndicatorColor()
+    return (self.IsInCombat and WowApi.Colors.IsNeutral or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsInCombat))
+end
+function WowApi.Timers:After(delay, action, cancellationToken)
+    C_Timer.After(delay, function() if ((nil == cancellationToken) or not(cancellationToken.IsCancellationRequested)) then action() end end)
+end
+function WowApi.Timers:Debounce(delay, action, cancellationToken)
+    local ct = ((nil ~= cancellationToken) and cancellationToken or WowApi.Timers:NewCancellationToken())
+
+    return function ()
+        ct.IsCancellationRequested = true
+        ct = WowApi.Timers:NewCancellationToken()
+
+        WowApi.Timers:After(delay, action, ct)
+    end
+end
+function WowApi.Timers:NewCancellationToken()
+    return { IsCancellationRequested = false, }
+end
+function WowApi.Timers:RepeatAction(delay, action, cancellationToken)
+    WowApi.Timers:After(delay, function() action(); WowApi.Timers:RepeatAction(delay, action, cancellationToken) end, cancellationToken)
+end
+function WowApi.Timers:RepeatActionUntil(delay, action, predicate, cancellationToken)
+    WowApi.Timers:RepeatAction(
+        delay,
+        function()
+            if ((predicate == nil) or predicate()) then
+                action()
+            else
+                cancellationToken.IsCancellationRequested = true
+            end
+        end,
+        cancellationToken
+    )
 end
 
 gamePadActionBarsFrame:Hide()
 gamePadActionBarsFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
-userDefinedApi.Events:SetHandler(function (_, eventName, ...) userDefinedEventHandlerMap[eventName](...) end)
 
-for eventName, _ in pairs(userDefinedEventHandlerMap) do
-    userDefinedApi.Events:RegisterEvent(eventName)
-end
+WowApi.Events:SetHandler(function (_, eventName, ...) WowApi.Events.HandlerMap[eventName](...) end)
 
-gamePadActionBarsFrame:EnableGamePadButton(true)
-gamePadActionBarsFrame:RegisterForClicks("AnyDown", "AnyUp")
-gamePadActionBarsFrame:SetAttribute("action", 1)
-gamePadActionBarsFrame:SetAttribute("ActionBarPage-State1", 1)
-gamePadActionBarsFrame:SetAttribute("ActionBarPage-State2", 2)
-gamePadActionBarsFrame:SetAttribute("ActionBarPage-State3", 3)
-gamePadActionBarsFrame:SetAttribute("ActionBarPage-State4", 4)
-gamePadActionBarsFrame:SetAttribute("ActionBarPage-State5", 5)
-gamePadActionBarsFrame:SetAttribute("IsEnabled", true)
-gamePadActionBarsFrame:SetAttribute("PadTriggerLeft-IsDown", false)
-gamePadActionBarsFrame:SetAttribute("PadTriggerRight-IsDown", false)
-gamePadActionBarsFrame:SetAttribute("type", "actionbar")
-gamePadActionBarsFrame:SetAttribute("_onstate-iscursordragging", [[
-    self:SetAttribute("IsEnabled", not(newstate))
-]])
-gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnClick", [[
-    if self:GetAttribute("IsEnabled") then
-        local actionButton5 = self:GetFrameRef("ActionButton5")
-        local actionButton9 = self:GetFrameRef("ActionButton9")
-        local actionButton11 = self:GetFrameRef("ActionButton11")
-
-        if (down) then
-            actionButton9:SetAlpha(1.0)
-            actionButton9:Show()
-            self:SetBindingClick(true, "PAD1", actionButton9)
-
-            if "PADLTRIGGER" == button then
-                self:SetAttribute("PadTriggerLeft-IsDown", true)
-
-                if self:GetAttribute("PadTriggerRight-IsDown") then
-                    actionButton5:SetAlpha(1.0)
-                    actionButton5:Show()
-                    actionButton11:SetAlpha(1.0)
-                    actionButton11:Show()
-                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State4"))
-                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
-                else
-                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State2"))
-                    self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State2"))
-                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State2"))
-                    self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State2"))
-                    self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State2"))
-                end
-            else
-                self:SetAttribute("PadTriggerRight-IsDown", true)
-
-                if self:GetAttribute("PadTriggerLeft-IsDown") then
-                    actionButton5:SetAlpha(1.0)
-                    actionButton5:Show()
-                    actionButton11:SetAlpha(1.0)
-                    actionButton11:Show()
-                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State5"))
-                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
-                else
-                    self:SetAttribute("action", self:GetAttribute("ActionBarPage-State3"))
-                    self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State3"))
-                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State3"))
-                    self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State3"))
-                    self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State3"))
-                end
-            end
-        else
-            actionButton5:SetAlpha(0.0)
-            actionButton9:SetAlpha(0.0)
-            actionButton11:SetAlpha(0.0)
-            self:SetAttribute("action", self:GetAttribute("ActionBarPage-State1"))
-            self:SetAttribute("PadTriggerLeft-IsDown", false)
-            self:SetAttribute("PadTriggerRight-IsDown", false)
-            self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeftBinding-State1"))
-            self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRightBinding-State1"))
-            self:SetBinding(true, self:GetAttribute("CustomPadName-Select"), self:GetAttribute("PadSelectBinding-State1"))
-            self:SetBinding(true, self:GetAttribute("CustomPadName-Start"), self:GetAttribute("PadStartBinding-State1"))
-            self:SetBinding(true, "PAD1", "JUMP")
-        end
-    end
-]])
-
-WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-iscursordragging', '[cursor] true; nil')
-WowApi.UserDefined = userDefinedApi
-
--- EXPERIMENTAL: debugging driver
-if (false) then
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar1active', '[actionbar:1] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar2active', '[actionbar:2] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar3active', '[actionbar:3] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar4active', '[actionbar:4] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar5active', '[actionbar:5] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isactionbar6active', '[actionbar:6] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-ischanneling', '[channeling] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isincombat', '[combat] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isingroup', '[group:party] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isinraid', '[group:raid] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-ismounted', '[mounted] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isresting', '[resting] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isstealthed', '[stealth] true; nil')
-    WowApi.Frames.RegisterAttributeDriver(gamePadActionBarsFrame, 'state-isswimming', '[swimming] true; nil')
-
-    gamePadActionBarsFrame:WrapScript(gamePadActionBarsFrame, "OnAttributeChanged", [[
-        print("name: " .. name .. " | value: " .. tostring(value))
-    ]])
+for eventName, _ in pairs(WowApi.Events.HandlerMap) do
+    WowApi.Events:RegisterEvent(eventName)
 end

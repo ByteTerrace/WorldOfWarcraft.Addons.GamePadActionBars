@@ -5,6 +5,7 @@
         "CameraZoomIn",
         "CameraZoomOut",
         "CastingBarFrame",
+        "ClearOverrideBindings",
         "CreateColorFromBytes",
         "CreateFrame",
         "C_CVar",

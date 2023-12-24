@@ -5,6 +5,7 @@
         "CameraZoomIn",
         "CameraZoomOut",
         "CastingBarFrame",
+        "CharacterMicroButton",
         "ClearOverrideBindings",
         "CreateColorFromBytes",
         "CreateFrame",
@@ -14,6 +15,7 @@
         "FramerateText",
         "GetScreenHeight",
         "GetScreenWidth",
+        "HelpMicroButton",
         "IsChatAFK",
         "InCombatLockdown",
         "MainMenuBar",
@@ -27,11 +29,14 @@
         "MainMenuBarTexture2",
         "MainMenuBarTexture3",
         "MainMenuExpBar",
+        "MainMenuMicroButton",
         "MainMenuXPBarTexture0",
         "MainMenuXPBarTexture1",
         "MainMenuXPBarTexture2",
         "MainMenuXPBarTexture3",
+        "PetActionBarFrame",
         "PetActionButton1",
+        "QuestLogMicroButton",
         "RegisterAttributeDriver",
         "ReputationWatchBar",
         "ResetView",
@@ -41,6 +46,10 @@
         "SetView",
         "SlidingActionBarTexture0",
         "SlidingActionBarTexture1",
-        "UIParent"
+        "SocialsMicroButton",
+        "SpellbookMicroButton",
+        "TalentMicroButton",
+        "UIParent",
+        "WorldMapMicroButton"
     ]
 }

@@ -241,17 +241,17 @@ function WowApi.GamePad:InitializeBindings(frame)
         if (nil ~= rawState) then
             if (GamePadVendorIdDualSense == rawState.vendorID) then
                 --[[ Validated for:
-                        - Official PlayStation 5 DualSense Controller: Bluetooth/USBC
+                    - Official PlayStation 5 DualSense Controller: Bluetooth/USBC
                 ]]
                 isDualSenseControllerConnected = true
             elseif (GamePadVendorIdNintendoSwitchPro == rawState.vendorID) then
                 --[[ Validated for:
-                        - Nintendo Switch Pro Controller: Bluetooth/USBC
+                    - Official Nintendo Switch Pro Controller: Bluetooth/USBC
                 ]]
                 isNintendoSwitchProControllerConnected = true
             elseif (GamePadVendorIdXboxSeriesX == rawState.vendorID) then
                 --[[ Validated for:
-                        - Official Xbox Series X Controller: Bluetooth/USBC
+                    - Official Xbox Series X Controller: Bluetooth/USBC
                 ]]
                 isXboxControllerConnected = true
             end
@@ -307,10 +307,10 @@ function WowApi.GamePad:InitializeDriver(frame)
     frame:RegisterForClicks("AnyDown", "AnyUp")
     frame:SetAttribute("action", 1)
     frame:SetAttribute("ActionBarPage-State1", 1)
-    frame:SetAttribute("ActionBarPage-State2", 2)
-    frame:SetAttribute("ActionBarPage-State3", 3)
+    frame:SetAttribute("ActionBarPage-State2", 6)
+    frame:SetAttribute("ActionBarPage-State3", 5)
     frame:SetAttribute("ActionBarPage-State4", 4)
-    frame:SetAttribute("ActionBarPage-State5", 5)
+    frame:SetAttribute("ActionBarPage-State5", 3)
     frame:SetAttribute("IsEnabled", true)
     frame:SetAttribute("PadTriggerLeft-IsDown", false)
     frame:SetAttribute("PadTriggerRight-IsDown", false)

@@ -188,8 +188,8 @@ local onPlayerRegenEnabled = function ()
 end
 
 WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
-WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
-WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
 WowApi.Events = {
     HandlerMap = {
         ADDON_LOADED = onAddonLoaded,
@@ -510,17 +510,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
     end
 end
 function WowApi.Player:GetStatusIndicatorColor()
-    return (self.IsInCombat and WowApi.Colors.IsNeutral or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsInCombat))
-end
-function WowApi.Timers:Debounce(delay, action, cancellationToken)
-    local ct = ((nil ~= cancellationToken) and cancellationToken or self:NewCancellationToken())
-
-    return function ()
-        ct.IsCancellationRequested = true
-        ct = self:NewCancellationToken()
-
-        self:NewTimer(delay, action, false, ct)
-    end
+    return (self.IsInCombat and WowApi.Colors.IsInCombat or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsNeutral))
 end
 function WowApi.Timers:NewCancellationToken()
     return { IsCancellationRequested = false, }

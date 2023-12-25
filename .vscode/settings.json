@@ -13,6 +13,7 @@
         "C_GamePad",
         "C_Timer",
         "C_Widget",
+        "ExecuteFrameScript",
         "FramerateText",
         "GetScreenHeight",
         "GetScreenWidth",

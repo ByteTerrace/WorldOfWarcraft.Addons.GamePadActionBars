@@ -99,7 +99,11 @@ local hookFrameVisibility = function (widget)
         local activeIndex = 1
         local button = WowApi.Frames.CreateFrame("Button", (widget:GetName() .. "VisibilityHandler"), widget, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
         local descendants = {}
-        local nextDescendantAction = function (frame) if (frame:IsObjectType("Button") and frame:IsVisible()) then descendants[(#descendants + 1)] = frame end end
+        local nextDescendantAction = function (frame)
+            if ((button ~= frame) and frame:IsObjectType("Button") and frame:IsVisible()) then
+                descendants[(#descendants + 1)] = frame
+            end
+        end
         local nextFrameTimer = WowApi.Timers:CreateTimer(0, function (self)
             for key, _ in pairs(descendants) do descendants[key] = nil end
 
@@ -109,7 +113,12 @@ local hookFrameVisibility = function (widget)
             WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
         end)
         local onClick = function (self)
+            activeIndex = ((activeIndex % #descendants) + 1)
 
+            --WowApi.Frames.SetOverrideBindingClick(self, true, "PAD1", descendants[activeIndex]:GetName())
+            WowApi.GamePad.CursorFrame.Texture:ClearAllPoints()
+            WowApi.GamePad.CursorFrame.Texture:SetParent(descendants[activeIndex])
+            WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
         end
         local onHide = function(self) WowApi.Frames.ClearOverrideBindings(self) end
         local onShow = function (self)

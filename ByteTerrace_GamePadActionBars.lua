@@ -275,6 +275,20 @@ WowApi.Events = {
     SetHandler = function (_, functor) onFrameEvent = functor end,
 }
 WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
+WowApi.GamePad.ButtonIconMap = {
+    [0] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_up.blp",
+    [1] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_right.blp",
+    [2] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_down.blp",
+    [3] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_left.blp",
+    [4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_trigger_button_left_1.blp",
+    [5] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_stick_button_left.blp",
+    [6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
+    [7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
+    [8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
+    [9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
+    [10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_trigger_button_right_1.blp",
+    [11] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_stick_button_right.blp",
+}
 WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Button", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 
 function WowApi.ConsoleVariables:Reset(key)
@@ -331,12 +345,24 @@ function WowApi.GamePad:InitializeBindings(frame)
     if isDualSenseControllerConnected then
         GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
         GamePadActionBarsCustomPadNameStart = "PADFORWARD"
+        WowApi.GamePad.ButtonIconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_triangle.blp"
+        WowApi.GamePad.ButtonIconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_square.blp"
+        WowApi.GamePad.ButtonIconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_cross.blp"
+        WowApi.GamePad.ButtonIconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_circle.blp"
     elseif isNintendoSwitchProControllerConnected then
         GamePadActionBarsCustomPadNameSelect = "PADBACK"
         GamePadActionBarsCustomPadNameStart = "PADFORWARD"
+        WowApi.GamePad.ButtonIconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
+        WowApi.GamePad.ButtonIconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
+        WowApi.GamePad.ButtonIconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
+        WowApi.GamePad.ButtonIconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
     elseif isXboxControllerConnected then
         GamePadActionBarsCustomPadNameSelect = "PADBACK"
         GamePadActionBarsCustomPadNameStart = "PADFORWARD"
+        WowApi.GamePad.ButtonIconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
+        WowApi.GamePad.ButtonIconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
+        WowApi.GamePad.ButtonIconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
+        WowApi.GamePad.ButtonIconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
     end
 
     frame:SetAttribute("CustomPadName-Select", GamePadActionBarsCustomPadNameSelect)
@@ -576,7 +602,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
         gamePadIconTexture:SetPoint("CENTER", 0, 0)
         gamePadIconTexture:SetSize(24, 24)
-        gamePadIconTexture:SetTexture("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/" .. iMod12 .. ".blp")
+        gamePadIconTexture:SetTexture(WowApi.GamePad.ButtonIconMap[iMod12])
         gamePadIconFrame.Texture = gamePadIconTexture
 
         if ((i == 4) or (i == 8) or (i == 10)) then

@@ -50,6 +50,7 @@
         "SocialsMicroButton",
         "SpellbookMicroButton",
         "TalentMicroButton",
+        "UIPanelWindows",
         "UIParent",
         "WorldMapMicroButton"
     ]

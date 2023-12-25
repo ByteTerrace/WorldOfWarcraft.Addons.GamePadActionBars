@@ -97,42 +97,52 @@ WowApi = {
 local hookFrameVisibility = function (widget)
     if C_Widget.IsFrameWidget(widget) then
         local activeIndex = 1
-        local button = WowApi.Frames.CreateFrame("Button", (widget:GetName() .. "VisibilityHandler"), widget, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
         local descendants = {}
+        local frameVisibilityHandler = WowApi.Frames.CreateFrame("Button", (widget:GetName() .. "VisibilityHandler"), widget, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
         local nextDescendantAction = function (frame)
-            if ((button ~= frame) and frame:IsObjectType("Button") and frame:IsVisible()) then
+            if ((frameVisibilityHandler ~= frame) and frame:HasScript("OnClick") and frame:IsObjectType("Button") and frame:IsVisible()) then
                 descendants[(#descendants + 1)] = frame
             end
         end
         local nextFrameTimer = WowApi.Timers:CreateTimer(0, function (self)
-            for key, _ in pairs(descendants) do descendants[key] = nil end
+            if not (InCombatLockdown()) then
+                for key, _ in pairs(descendants) do descendants[key] = nil end
 
-            WowApi.Frames:EnumerateDescendants(self:GetParent(), nextDescendantAction)
-            WowApi.GamePad.CursorFrame.Texture:ClearAllPoints()
-            WowApi.GamePad.CursorFrame.Texture:SetParent(descendants[activeIndex])
-            WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
+                WowApi.Frames.ClearOverrideBindings(self)
+                WowApi.Frames:EnumerateDescendants(self:GetParent(), nextDescendantAction)
+                WowApi.Frames.SetOverrideBindingClick(self, true, "PAD1", WowApi.GamePad.CursorFrame:GetName(), "LeftButton")
+                WowApi.Frames.SetOverrideBindingClick(self, true, "PADDUP", self:GetName(), "PADDUP")
+                WowApi.Frames.SetOverrideBindingClick(self, true, "PADDRIGHT", self:GetName(), "PADDRIGHT")
+                WowApi.Frames.SetOverrideBindingClick(self, true, "PADDDOWN", self:GetName(), "PADDDOWN")
+                WowApi.Frames.SetOverrideBindingClick(self, true, "PADDLEFT", self:GetName(), "PADDLEFT")
+                WowApi.GamePad.CursorFrame.Texture:ClearAllPoints()
+                WowApi.GamePad.CursorFrame.Texture:SetParent(descendants[activeIndex])
+                WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
+                WowApi.GamePad.CursorFrame:SetAttribute("clickbutton", descendants[activeIndex])
+            end
         end)
-        local onClick = function (self)
+        local onClick = function (_, button)
+            activeIndex = (activeIndex - 1)
+
+            if ("PADDUP" == button) then
+                activeIndex = (activeIndex - 1)
+            elseif ("PADDDOWN" == button) then
+                activeIndex = (activeIndex + 1)
+            end
+
             activeIndex = ((activeIndex % #descendants) + 1)
 
-            --WowApi.Frames.SetOverrideBindingClick(self, true, "PAD1", descendants[activeIndex]:GetName())
             WowApi.GamePad.CursorFrame.Texture:ClearAllPoints()
             WowApi.GamePad.CursorFrame.Texture:SetParent(descendants[activeIndex])
             WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
+            WowApi.GamePad.CursorFrame:SetAttribute("clickbutton", descendants[activeIndex])
         end
-        local onHide = function(self) WowApi.Frames.ClearOverrideBindings(self) end
-        local onShow = function (self)
-            WowApi.Frames.ClearOverrideBindings(self)
-            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDUP", self:GetName(), "PADDUP")
-            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDRIGHT", self:GetName(), "PADDRIGHT")
-            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDDOWN", self:GetName(), "PADDDOWN")
-            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDLEFT", self:GetName(), "PADDLEFT")
-            WowApi.Timers:StartTimer(nextFrameTimer, self)
-        end
+        local onHide = function (self) WowApi.Frames.ClearOverrideBindings(self) end
+        local onShow = function (self) WowApi.Timers:StartTimer(nextFrameTimer, self) end
 
-        button:SetScript("OnClick", onClick)
-        button:SetScript("OnHide", onHide)
-        button:SetScript("OnShow", onShow)
+        frameVisibilityHandler:SetScript("OnClick", onClick)
+        frameVisibilityHandler:SetScript("OnHide", onHide)
+        frameVisibilityHandler:SetScript("OnShow", onShow)
     end
 end
 local initializeCameraVariables = function ()
@@ -259,7 +269,7 @@ WowApi.Events = {
     SetHandler = function (_, functor) onFrameEvent = functor end,
 }
 WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
-WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
+WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Button", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 
 function WowApi.ConsoleVariables:Reset(key)
     C_CVar.SetCVar(key, C_CVar.GetCVarDefault(key))
@@ -355,20 +365,20 @@ function WowApi.GamePad:InitializeBindings(frame)
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
-function WowApi.GamePad:InitializeCursor(_)
+function WowApi.GamePad:InitializeCursor(frame)
     for frameName, _ in pairs(UIPanelWindows) do
         hookFrameVisibility(_G[frameName])
     end
 
-    local cursorFrame = WowApi.GamePad.CursorFrame
-    local cursorTexture = cursorFrame:CreateTexture()
+    local cursorTexture = frame:CreateTexture()
 
-    cursorFrame:ClearAllPoints()
-    cursorFrame:SetPoint("CENTER", 0, 0)
-    cursorFrame.Texture = cursorTexture
     cursorTexture:SetAllPoints(WowApi.GamePad.ActionBarsFrame)
     cursorTexture:SetSize(24, 24)
     cursorTexture:SetTexture("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
+    frame:ClearAllPoints()
+    frame:SetAttribute("type", "click")
+    frame:SetPoint("CENTER", 0, 0)
+    frame.Texture = cursorTexture
 end
 function WowApi.GamePad:InitializeDriver(frame)
     frame:EnableGamePadButton(true)

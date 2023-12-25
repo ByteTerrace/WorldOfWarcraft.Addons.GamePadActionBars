@@ -12,6 +12,7 @@
         "C_CVar",
         "C_GamePad",
         "C_Timer",
+        "C_Widget",
         "FramerateText",
         "GetScreenHeight",
         "GetScreenWidth",

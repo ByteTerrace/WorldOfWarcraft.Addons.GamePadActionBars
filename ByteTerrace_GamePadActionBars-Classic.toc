@@ -5,4 +5,4 @@
 ## Title: GamePadActionBars
 ## Version: 0.0.0-alpha
 
-GamePadActionBars.lua
+ByteTerrace_GamePadActionBars.lua

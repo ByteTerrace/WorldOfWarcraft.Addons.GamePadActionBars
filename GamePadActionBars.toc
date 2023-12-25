@@ -1,6 +1,0 @@
-## Author: kittoes@byteterrace.com
-## Interface: 0
-## Notes: Pardon all the dust!
-## OptionalDeps: ConsolePad_Cursor, Immersion
-## Title: GamePadActionBars
-## Version: 0.0.0-alpha

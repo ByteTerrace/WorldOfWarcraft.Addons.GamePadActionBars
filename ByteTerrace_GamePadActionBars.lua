@@ -1,4 +1,3 @@
-local GamePadActionBarsAddonName = "GamePadActionBars"
 local GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
 local GamePadActionBarsCustomPadNameStart = "PADFORWARD"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
@@ -22,7 +21,14 @@ local GamePadVendorIdNintendoSwitchPro = 1406
 local GamePadVendorIdXboxSeriesX = 1118
 
 WowApi = {
-    ConsoleVariables = C_CVar,
+    Camera = {
+        ResetView = ResetView,
+        SaveView = SaveView,
+        SetView = SetView,
+        ZoomIn = CameraZoomIn,
+        ZoomOut = CameraZoomOut,
+    },
+    ConsoleVariables = {},
     Colors = {
         CreateColorFromBytes = CreateColorFromBytes,
     },
@@ -40,10 +46,6 @@ WowApi = {
     },
     Timers = {},
     UserInterface = {
-        Camera = {
-            ZoomIn = CameraZoomIn,
-            ZoomOut = CameraZoomOut,
-        },
         HiddenFrames = {
             ActionBarDownButton,
             ActionBarUpButton,
@@ -89,86 +91,125 @@ WowApi = {
             WorldMapMicroButton = WorldMapMicroButton,
         },
         Parent = UIParent,
-        ResetView = ResetView,
-        SaveView = SaveView,
-        SetView = SetView,
     },
 }
 
+local hookFrameVisibility = function (widget)
+    if C_Widget.IsFrameWidget(widget) then
+        local activeIndex = 1
+        local button = WowApi.Frames.CreateFrame("Button", (widget:GetName() .. "VisibilityHandler"), widget, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+        local descendants = {}
+        local nextDescendantAction = function (frame) if (frame:IsObjectType("Button") and frame:IsVisible()) then descendants[(#descendants + 1)] = frame end end
+        local nextFrameTimer = WowApi.Timers:CreateTimer(0, function (self)
+            for key, _ in pairs(descendants) do descendants[key] = nil end
+
+            WowApi.Frames:EnumerateDescendants(self:GetParent(), nextDescendantAction)
+            WowApi.GamePad.CursorFrame.Texture:ClearAllPoints()
+            WowApi.GamePad.CursorFrame.Texture:SetParent(descendants[activeIndex])
+            WowApi.GamePad.CursorFrame.Texture:SetPoint("RIGHT", -8, 0)
+        end)
+        local onClick = function (self)
+
+        end
+        local onHide = function(self) WowApi.Frames.ClearOverrideBindings(self) end
+        local onShow = function (self)
+            WowApi.Frames.ClearOverrideBindings(self)
+            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDUP", self:GetName(), "PADDUP")
+            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDRIGHT", self:GetName(), "PADDRIGHT")
+            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDDOWN", self:GetName(), "PADDDOWN")
+            WowApi.Frames.SetOverrideBindingClick(self, true, "PADDLEFT", self:GetName(), "PADDLEFT")
+            WowApi.Timers:StartTimer(nextFrameTimer, self)
+        end
+
+        button:SetScript("OnClick", onClick)
+        button:SetScript("OnHide", onHide)
+        button:SetScript("OnShow", onShow)
+    end
+end
 local initializeCameraVariables = function ()
     -- EXPERIMENTAL: action camera configuration
     WowApi.UserInterface.Parent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
-    WowApi.ConsoleVariables.SetCVar("CameraKeepCharacterCentered", "0")                       --
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitch", "1")                           --
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPad", "0.875")             -- min is 0.4, max is 1.0
-    WowApi.ConsoleVariables.SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", "1.0")      -- min is 0.25, max is 1.0
-    WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementStrength", "1")                   --
-    WowApi.ConsoleVariables.SetCVar("test_cameraHeadMovementMovingStrength", "1.0")           --
-    WowApi.ConsoleVariables.SetCVar("test_cameraOverShoulder", "0.475")                       -- min is ???, max is ???
-    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractEnable", "1")
-    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthPitch", "0.75")    -- min is ???, max is ???
-    WowApi.ConsoleVariables.SetCVar("test_cameraTargetFocusInteractStrengthYaw", "1.0")       -- min is ???, max is ???
-    WowApi.UserInterface.ResetView(5)
-    WowApi.UserInterface.SetView(5)
-    WowApi.UserInterface.Camera.ZoomOut(50.0)
-    WowApi.UserInterface.Camera.ZoomIn(1.25)
-    WowApi.UserInterface.SaveView(5)
+    WowApi.ConsoleVariables:Set("CameraKeepCharacterCentered", false)
+    WowApi.ConsoleVariables:Set("test_cameraDynamicPitch", 1.0)
+    WowApi.ConsoleVariables:Set("test_cameraDynamicPitchBaseFovPad", 0.875)
+    WowApi.ConsoleVariables:Set("test_cameraDynamicPitchBaseFovPadDownScale", 1.0)
+    WowApi.ConsoleVariables:Set("test_cameraHeadMovementStrength", 1.0)
+    WowApi.ConsoleVariables:Set("test_cameraHeadMovementMovingStrength", 1.0)
+    WowApi.ConsoleVariables:Set("test_cameraOverShoulder", 0.475)
+    WowApi.ConsoleVariables:Set("test_cameraTargetFocusInteractEnable", true)
+    WowApi.ConsoleVariables:Set("test_cameraTargetFocusInteractStrengthPitch", 0.75)
+    WowApi.ConsoleVariables:Set("test_cameraTargetFocusInteractStrengthYaw", 1.0)
 end
 local initializeGamePadVariables = function ()
-    WowApi.ConsoleVariables.SetCVar("GamePadAnalogMovement", "1")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadCameraPitchSpeed", "1.5")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCameraYawSpeed", "2.25")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableJump", "1")           --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoDisableSticks", "2")         -- 0 = never, 1 = on movement, 2 = on cursor or movement
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorAutoEnable", "0")                --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorCenteredEmulation", "0")         --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorCentering", "0")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorForTargeting", "0")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorLeftClick", "NONE")              --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorOnLogin", "1")                   --
-    WowApi.ConsoleVariables.SetCVar("GamePadCursorRightClick", "NONE")             --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateAlt", "NONE")                   --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateEsc'", "NONE")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateCtrl", "NONE")                  --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateShift", "NONE")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadEmulateTapWindowMs", "350")            --
-    WowApi.ConsoleVariables.SetCVar("GamePadEnable", "1")                          --
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngle", "115")          -- 0 = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFaceMovementMaxAngleCombat", "115")    -- 0 = always, 180 = never
-    WowApi.ConsoleVariables.SetCVar("GamePadFactionColor", "0")                    --
-    WowApi.ConsoleVariables.SetCVar("GamePadOverlapMouseMs", "2000")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadRunThreshold", "0.65")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadStickAxisButtons", "0")                --
-    WowApi.ConsoleVariables.SetCVar("GamePadTankTurnSpeed", "0.0")                 --
-    WowApi.ConsoleVariables.SetCVar("GamePadTouchCursorEnable", "0")               --
-    WowApi.ConsoleVariables.SetCVar("GamePadTurnWithCamera", "2")                  -- 0 = never, 1 = while in combat, 2 = always
-    WowApi.ConsoleVariables.SetCVar("GamePadVibrationStrength", "1")               --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemy", "1")                        -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyArc", "1")                     -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetEnemyRange", "30.0")                --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriend", "1")                       -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendArc", "1")                    -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetFriendRange", "10.0")               --
-    WowApi.ConsoleVariables.SetCVar("SoftTargetForce", "0")                        -- 0 = never, 1 = enemies, 2 = friends
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteract", "1")                     -- 0 = never, 1 = gamepad, 2 = keyboard, 3 = always
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractArc", "1")                  -- 0 = never, 1 = within arc, 2 = anywhere
-    WowApi.ConsoleVariables.SetCVar("SoftTargetInteractRange", "2.5")              --
+    WowApi.ConsoleVariables:Set("GamePadAnalogMovement", true)
+    WowApi.ConsoleVariables:Set("GamePadCameraPitchSpeed", 1.5)
+    WowApi.ConsoleVariables:Set("GamePadCameraYawSpeed", 2.25)
+    WowApi.ConsoleVariables:Set("GamePadCursorAutoDisableJump", true)
+    WowApi.ConsoleVariables:Set("GamePadCursorAutoDisableSticks", "2")
+    WowApi.ConsoleVariables:Set("GamePadCursorAutoEnable", false)
+    WowApi.ConsoleVariables:Set("GamePadCursorCenteredEmulation", false)
+    WowApi.ConsoleVariables:Set("GamePadCursorCentering", false)
+    WowApi.ConsoleVariables:Set("GamePadCursorForTargeting", false)
+    WowApi.ConsoleVariables:Set("GamePadCursorLeftClick", "NONE")
+    WowApi.ConsoleVariables:Set("GamePadCursorOnLogin", true)
+    WowApi.ConsoleVariables:Set("GamePadCursorRightClick", "NONE")
+    WowApi.ConsoleVariables:Set("GamePadEmulateAlt", "NONE")
+    WowApi.ConsoleVariables:Set("GamePadEmulateCtrl", "NONE")
+    WowApi.ConsoleVariables:Set("GamePadEmulateShift", "NONE")
+    WowApi.ConsoleVariables:Set("GamePadEmulateTapWindowMs", 350)
+    WowApi.ConsoleVariables:Set("GamePadEnable", true)
+    WowApi.ConsoleVariables:Set("GamePadFaceMovementMaxAngle", 115.0)
+    WowApi.ConsoleVariables:Set("GamePadFaceMovementMaxAngleCombat", 115.0)
+    WowApi.ConsoleVariables:Set("GamePadFactionColor", false)
+    WowApi.ConsoleVariables:Set("GamePadOverlapMouseMs", 2000)
+    WowApi.ConsoleVariables:Set("GamePadRunThreshold", 0.65)
+    WowApi.ConsoleVariables:Set("GamePadStickAxisButtons", false)
+    WowApi.ConsoleVariables:Set("GamePadTankTurnSpeed", 0.0)
+    WowApi.ConsoleVariables:Set("GamePadTouchCursorEnable", false)
+    WowApi.ConsoleVariables:Set("GamePadTurnWithCamera", "2")
+    WowApi.ConsoleVariables:Set("GamePadVibrationStrength", 1.0)
+    WowApi.ConsoleVariables:Set("SoftTargetEnemy", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetEnemyArc", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetEnemyRange", 30.0)
+    WowApi.ConsoleVariables:Set("SoftTargetFriend", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetFriendArc", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetFriendRange", 10.0)
+    WowApi.ConsoleVariables:Set("SoftTargetForce", "0")
+    WowApi.ConsoleVariables:Set("SoftTargetInteract", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetInteractArc", "1")
+    WowApi.ConsoleVariables:Set("SoftTargetInteractRange", 2.5)
 end
 local onAddonLoaded = function (key)
-    if (GamePadActionBarsAddonName == key) then
-        local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
-        local gamePadCursorFrame = WowApi.GamePad.CursorFrame
+    local handler = WowApi.Addons.HandlerMap[key]
 
-        WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
-        WowApi.GamePad:InitializeCursor(gamePadCursorFrame)
-        WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
-        WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
+    if (nil ~= handler) then
+        handler()
     end
 end
+local onAddonLoaded_Blizzard_TalentUI = function()
+    hookFrameVisibility(_G["PlayerTalentFrame"])
+end
+local onAddonLoaded_ByteTerrace_GamePadActionBars = function()
+    local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
+    local gamePadCursorFrame = WowApi.GamePad.CursorFrame
+
+    WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
+    WowApi.GamePad:InitializeCursor(gamePadCursorFrame)
+    WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
+    WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
+end
 local onFrameEvent = function (...) end
-local onPlayerEnteringWorld = function ()
-    initializeCameraVariables()
-    initializeGamePadVariables()
+local onPlayerEnteringWorld = function (isInitialLogin)
+    if isInitialLogin then
+        initializeCameraVariables()
+        initializeGamePadVariables()
+    end
+
+    WowApi.Camera.ResetView(5)
+    WowApi.Camera.SetView(5)
+    WowApi.Camera.ZoomOut(50.0)
+    WowApi.Camera.ZoomIn(1.25)
+    WowApi.Camera.SaveView(5)
     WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
 end
 local onPlayerFlagsChanged = function ()
@@ -187,6 +228,12 @@ local onPlayerRegenEnabled = function ()
     onPlayerFlagsChanged()
 end
 
+WowApi.Addons = {
+    HandlerMap = {
+        Blizzard_TalentUI = onAddonLoaded_Blizzard_TalentUI,
+        ByteTerrace_GamePadActionBars = onAddonLoaded_ByteTerrace_GamePadActionBars,
+    },
+}
 WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
 WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
 WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
@@ -205,30 +252,28 @@ WowApi.Events = {
 WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.UserInterface.Parent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
 WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Frame", "GamePadCursorFrame", WowApi.UserInterface.Parent, "SecureHandlerBaseTemplate")
 
-function WowApi.Frames:GetDescendants(parent)
-    local children = { parent:GetChildren(), }
-    local descendants = {}
+function WowApi.ConsoleVariables:Reset(key)
+    C_CVar.SetCVar(key, C_CVar.GetCVarDefault(key))
+end
+function WowApi.ConsoleVariables:Set(key, value)
+    local valueType = type(value)
 
-    if (0 < #children) then
-        local index = 0
-        local stack = { children, }
-
-        while (0 < #stack) do
-            children = table.remove(stack, #stack)
-
-            for _, child in ipairs(children) do
-                children = { child:GetChildren(), }
-                descendants[index] = child
-                index = (index + 1)
-
-                if (0 < #children) then
-                    stack[(#stack + 1)] = children
-                end
-            end
-        end
+    if ("boolean" == valueType) then
+        value = (value and "1" or "0")
+    elseif ("number" == valueType) then
+        value = tostring(value)
     end
 
-    return descendants
+    C_CVar.SetCVar(key, value)
+end
+function WowApi.Frames:EnumerateDescendants(parent, action)
+    for i = 1, select("#", parent:GetChildren()) do
+        local child = select(i, parent:GetChildren())
+
+        action(child)
+
+        self:EnumerateDescendants(child, action)
+    end
 end
 function WowApi.GamePad:InitializeBindings(frame)
     local isDualSenseControllerConnected = false
@@ -301,7 +346,21 @@ function WowApi.GamePad:InitializeBindings(frame)
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
     WowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
-function WowApi.GamePad:InitializeCursor(_) end
+function WowApi.GamePad:InitializeCursor(_)
+    for frameName, _ in pairs(UIPanelWindows) do
+        hookFrameVisibility(_G[frameName])
+    end
+
+    local cursorFrame = WowApi.GamePad.CursorFrame
+    local cursorTexture = cursorFrame:CreateTexture()
+
+    cursorFrame:ClearAllPoints()
+    cursorFrame:SetPoint("CENTER", 0, 0)
+    cursorFrame.Texture = cursorTexture
+    cursorTexture:SetAllPoints(WowApi.GamePad.ActionBarsFrame)
+    cursorTexture:SetSize(24, 24)
+    cursorTexture:SetTexture("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/8.blp", "OVERLAY")
+end
 function WowApi.GamePad:InitializeDriver(frame)
     frame:EnableGamePadButton(true)
     frame:RegisterForClicks("AnyDown", "AnyUp")
@@ -492,7 +551,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
         gamePadIconTexture:SetPoint("CENTER", 0, 0)
         gamePadIconTexture:SetSize(24, 24)
-        gamePadIconTexture:SetTexture("Interface/AddOns/GamePadActionBars/Assets/Icons/" .. iMod12 .. ".blp")
+        gamePadIconTexture:SetTexture("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/" .. iMod12 .. ".blp")
         gamePadIconFrame.Texture = gamePadIconTexture
 
         if ((i == 4) or (i == 8) or (i == 10)) then
@@ -507,41 +566,32 @@ end
 function WowApi.Player:GetStatusIndicatorColor()
     return (self.IsInCombat and WowApi.Colors.IsInCombat or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsNeutral))
 end
-function WowApi.Timers:NewCancellationToken()
-    return { IsCancellationRequested = false, }
-end
-function WowApi.Timers:NewTimer(delay, action, isRepeating, cancellationToken)
+function WowApi.Timers:CreateTimer(delay, action, isRepeating, cancellationToken)
     local timer = {}
 
-    timer.action = action
     timer.callback = function()
         if ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested)) then
-            timer.action(timer)
+            timer.func(timer.arguments)
         end
 
-        if (isRepeating and ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested))) then
-            C_Timer.After(delay, timer.callback)
+        if (timer.isRepeating and ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested))) then
+            C_Timer.After(timer.delay, timer.callback)
         end
     end
     timer.cancellationToken = ((nil ~= cancellationToken) and cancellationToken or self:NewCancellationToken())
-
-    C_Timer.After(delay, timer.callback)
+    timer.delay = delay
+    timer.func = ((nil ~= action) and action or function (...) end)
+    timer.isRepeating = isRepeating
 
     return timer
 end
-function WowApi.Timers:RepeatUntil(delay, action, predicate, cancellationToken)
-    return self:NewTimer(
-        delay,
-        function (timer)
-            if ((predicate == nil) or predicate()) then
-                action()
-            else
-                timer.cancellationToken.IsCancellationRequested = true
-            end
-        end,
-        true,
-        cancellationToken
-    )
+function WowApi.Timers:NewCancellationToken()
+    return { IsCancellationRequested = false, }
+end
+function WowApi.Timers:StartTimer(timer, ...)
+    timer.arguments = ...
+
+    C_Timer.After(timer.delay, timer.callback)
 end
 
 WowApi.Events:SetHandler(function (_, eventName, ...) WowApi.Events.HandlerMap[eventName](...) end)

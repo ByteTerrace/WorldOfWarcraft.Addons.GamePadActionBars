@@ -161,20 +161,6 @@ local getDefaultSettings = function ()
 
     return settings
 end
-local onAddonLoaded_ByteTerrace_GamePadActionBars = function()
-    if (nil == ByteTerrace_GamePadActionBars) then
-        ByteTerrace_GamePadActionBars = getDefaultSettings()
-    end
-
-    local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
-
-    WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
-    WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
-
-    if ByteTerrace_GamePadActionBars.GamePad.ActionBars.IsEnabled then
-        WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
-    end
-end
 local onFrameEvent = function (...) end
 local onPlayerInteractionManagerHide = function() --[[SetGamePadCursorControl(false)]] end
 local onPlayerInteractionManagerShow = function() --[[SetGamePadCursorControl(true)]] end
@@ -200,13 +186,6 @@ function WowApi.ConsoleVariables:Set(key, value)
     end
 
     C_CVar.SetCVar(key, value)
-end
-function WowApi.Events:OnAddonLoaded(key)
-    local handler = WowApi.Addons.HandlerMap[key]
-
-    if (nil ~= handler) then
-        handler()
-    end
 end
 function WowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
     if isInitialLogin then
@@ -506,13 +485,32 @@ function WowApi.System:IsMainline()
 end
 
 WowApi.Addons.HandlerMap = {
-    ByteTerrace_GamePadActionBars = onAddonLoaded_ByteTerrace_GamePadActionBars,
+    ByteTerrace_GamePadActionBars = function()
+        if (nil == ByteTerrace_GamePadActionBars) then
+            ByteTerrace_GamePadActionBars = getDefaultSettings()
+        end
+
+        local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
+
+        WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
+        WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
+
+        if ByteTerrace_GamePadActionBars.GamePad.ActionBars.IsEnabled then
+            WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
+        end
+    end,
 }
 WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
 WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
 WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
 WowApi.Events.HandlerMap = {
-    ADDON_LOADED = WowApi.Events.OnAddonLoaded,
+    ADDON_LOADED = function (key)
+        local handler = WowApi.Addons.HandlerMap[key]
+
+        if (nil ~= handler) then
+            handler()
+        end
+    end,
     PLAYER_ENTERING_WORLD = WowApi.Events.OnPlayerEnteringWorld,
     PLAYER_FLAGS_CHANGED = WowApi.Events.OnPlayerFlagsChanged,
     PLAYER_INTERACTION_MANAGER_FRAME_HIDE = onPlayerInteractionManagerHide,

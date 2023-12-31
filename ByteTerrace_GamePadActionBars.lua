@@ -1,4 +1,4 @@
-WowApi = {
+ByteTerraceWowApi = {
     Addons = {},
     Camera = {
         ResetView = ResetView,
@@ -151,10 +151,10 @@ local getDefaultSettings = function ()
         },
     }
 
-    if WowApi.System:IsClassic() then
+    if ByteTerraceWowApi.System:IsClassic() then
         settings.GamePad.ActionBars.ButtonSize = 40
         settings.GamePad.ActionBars.OffsetY = 200
-    elseif WowApi.System:IsMainline() then
+    elseif ByteTerraceWowApi.System:IsMainline() then
         settings.GamePad.ActionBars.ButtonSize = 45
         settings.GamePad.ActionBars.OffsetY = 200
     end
@@ -165,18 +165,18 @@ local onFrameEvent = function (...) end
 local onPlayerInteractionManagerHide = function() --[[SetGamePadCursorControl(false)]] end
 local onPlayerInteractionManagerShow = function() --[[SetGamePadCursorControl(true)]] end
 
-function WowApi.Camera:InitializeConsoleVariables()
+function ByteTerraceWowApi.Camera:InitializeConsoleVariables()
     -- EXPERIMENTAL: action camera configuration
-    WowApi.Frames.UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
+    ByteTerraceWowApi.Frames.UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
 
     for key, value in pairs(ByteTerrace_GamePadActionBars.Camera.ConsoleVariables) do
-        WowApi.ConsoleVariables:Set(key, value)
+        ByteTerraceWowApi.ConsoleVariables:Set(key, value)
     end
 end
-function WowApi.ConsoleVariables:Reset(key)
+function ByteTerraceWowApi.ConsoleVariables:Reset(key)
     C_CVar.SetCVar(key, C_CVar.GetCVarDefault(key))
 end
-function WowApi.ConsoleVariables:Set(key, value)
+function ByteTerraceWowApi.ConsoleVariables:Set(key, value)
     local valueType = type(value)
 
     if ("boolean" == valueType) then
@@ -187,41 +187,41 @@ function WowApi.ConsoleVariables:Set(key, value)
 
     C_CVar.SetCVar(key, value)
 end
-function WowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
+function ByteTerraceWowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
     if isInitialLogin then
-        WowApi.Camera:InitializeConsoleVariables()
-        WowApi.GamePad:InitializeConsoleVariables()
+        ByteTerraceWowApi.Camera:InitializeConsoleVariables()
+        ByteTerraceWowApi.GamePad:InitializeConsoleVariables()
     end
 
     --MainMenuBar:UpdateSystemSettingValue(Enum.EditModeActionBarSetting.HideBarArt, 1)
-    WowApi.Camera.ResetView(5)
-    WowApi.Camera.SetView(5)
-    WowApi.Camera.ZoomOut(50.0)
-    WowApi.Camera.ZoomIn(1.25)
-    WowApi.Camera.SaveView(5)
-    WowApi.Events:OnPlayerFlagsChanged()
+    ByteTerraceWowApi.Camera.ResetView(5)
+    ByteTerraceWowApi.Camera.SetView(5)
+    ByteTerraceWowApi.Camera.ZoomOut(50.0)
+    ByteTerraceWowApi.Camera.ZoomIn(1.25)
+    ByteTerraceWowApi.Camera.SaveView(5)
+    ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
 end
-function WowApi.Events:OnPlayerFlagsChanged()
-    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
-    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
+function ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
+    ByteTerraceWowApi.Player.IsAwayFromKeyboard = IsChatAFK()
+    ByteTerraceWowApi.GamePad.SetLedColor(ByteTerraceWowApi.Player:GetStatusIndicatorColor())
 end
-function WowApi.Events:OnPlayerRegenDisabled()
-    WowApi.Player.IsInCombat = true
-    WowApi.GamePad.SetVibration("High", 1.0)
-    WowApi.Events:OnPlayerFlagsChanged()
+function ByteTerraceWowApi.Events:OnPlayerRegenDisabled()
+    ByteTerraceWowApi.Player.IsInCombat = true
+    ByteTerraceWowApi.GamePad.SetVibration("High", 1.0)
+    ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
 end
-function WowApi.Events:OnPlayerRegenEnabled()
-    WowApi.Player.IsInCombat = false
-    WowApi.GamePad.SetVibration("Low", 0.5)
-    WowApi.Events:OnPlayerFlagsChanged()
+function ByteTerraceWowApi.Events:OnPlayerRegenEnabled()
+    ByteTerraceWowApi.Player.IsInCombat = false
+    ByteTerraceWowApi.GamePad.SetVibration("Low", 0.5)
+    ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
 end
-function WowApi.Events:RegisterEvent(eventName)
-    WowApi.GamePad.EventFrame:RegisterEvent(eventName)
+function ByteTerraceWowApi.Events:RegisterEvent(eventName)
+    ByteTerraceWowApi.GamePad.EventFrame:RegisterEvent(eventName)
 end
-function WowApi.Events:SetHandler(func)
+function ByteTerraceWowApi.Events:SetHandler(func)
     onFrameEvent = func
 end
-function WowApi.GamePad:InitializeBindings(frame)
+function ByteTerraceWowApi.GamePad:InitializeBindings(frame)
     local isDualSenseControllerConnected = false
     local isNintendoSwitchProControllerConnected = false
     local isXboxControllerConnected = false
@@ -284,27 +284,27 @@ function WowApi.GamePad:InitializeBindings(frame)
     frame:SetAttribute("PadStart-State4-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[4].Binding)
     frame:SetAttribute("PadStart-State5-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[5].Binding)
 
-    WowApi.Frames.SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[1].Binding)
-    WowApi.Frames.SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[1].Binding)
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADDUP", "ACTIONBUTTON1")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADDRIGHT", "ACTIONBUTTON2")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADDDOWN", "ACTIONBUTTON3")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADDLEFT", "ACTIONBUTTON4")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADLSTICK", "ACTIONBUTTON6")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PAD4", "ACTIONBUTTON7")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PAD3", "ACTIONBUTTON8")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PAD1", "JUMP")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PAD2", "ACTIONBUTTON10")
-    WowApi.Frames.SetOverrideBinding(frame, true, "PADRSTICK", "ACTIONBUTTON12")
-    WowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
-    WowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[1].Binding)
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[1].Binding)
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADDUP", "ACTIONBUTTON1")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADDRIGHT", "ACTIONBUTTON2")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADDDOWN", "ACTIONBUTTON3")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADDLEFT", "ACTIONBUTTON4")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADLSTICK", "ACTIONBUTTON6")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PAD4", "ACTIONBUTTON7")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PAD3", "ACTIONBUTTON8")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PAD1", "JUMP")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PAD2", "ACTIONBUTTON10")
+    ByteTerraceWowApi.Frames.SetOverrideBinding(frame, true, "PADRSTICK", "ACTIONBUTTON12")
+    ByteTerraceWowApi.Frames.SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
+    ByteTerraceWowApi.Frames.SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
-function WowApi.GamePad:InitializeConsoleVariables()
+function ByteTerraceWowApi.GamePad:InitializeConsoleVariables()
     for key, value in pairs(ByteTerrace_GamePadActionBars.GamePad.ConsoleVariables) do
-        WowApi.ConsoleVariables:Set(key, value)
+        ByteTerraceWowApi.ConsoleVariables:Set(key, value)
     end
 end
-function WowApi.GamePad:InitializeDriver(frame)
+function ByteTerraceWowApi.GamePad:InitializeDriver(frame)
     frame:EnableGamePadButton(true)
     frame:RegisterForClicks("AnyDown", "AnyUp")
     frame:SetAttribute("action", 1)
@@ -391,7 +391,7 @@ function WowApi.GamePad:InitializeDriver(frame)
         end
     ]])
 end
-function WowApi.GamePad:InitializeUserInterface(frame)
+function ByteTerraceWowApi.GamePad:InitializeUserInterface(frame)
     local buttonSize = ByteTerrace_GamePadActionBars.GamePad.ActionBars.ButtonSize
     local buttonSizeTimes2 = (buttonSize * 2)
     local buttonSizeTimes3 = (buttonSize * 3)
@@ -422,7 +422,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         end
 
         local actionButton = _G[(actionBarName .. (iMod12 + 1))]
-        local gamePadIconFrame = WowApi.Frames.CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
+        local gamePadIconFrame = ByteTerraceWowApi.Frames.CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
         local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
         local gamePadIconTextureOffsetX = (((iMod6 == 1) and 17.5 or ((iMod6 == 3) and -17.5 or 0)) * (isReflection and -1 or 1))
         local gamePadIconTextureOffsetY = ((iMod6 == 0) and 17.5 or ((iMod6 == 2) and -17.5 or 0))
@@ -446,7 +446,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         end
     end
 
-    if WowApi.System:IsClassic() then
+    if ByteTerraceWowApi.System:IsClassic() then
         ActionBarDownButton:SetPoint("LEFT", MainMenuBarTexture2, "LEFT", -(ActionBarDownButton:GetWidth() * 0.225), -(ActionBarDownButton:GetHeight() * 0.325))
         ActionBarUpButton:SetPoint("LEFT", MainMenuBarTexture2, "LEFT", -(ActionBarUpButton:GetWidth() * 0.225), (ActionBarUpButton:GetHeight() * 0.265))
         CharacterMicroButton:ClearAllPoints()
@@ -461,70 +461,70 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         MainMenuBarTexture3:SetPoint("CENTER", (MainMenuBarTexture3:GetWidth() * 0.5), 0)
         MainMenuExpBar:SetPoint("CENTER", (MainMenuExpBar:GetWidth() * 0.5), 0)
         MainMenuExpBar:SetWidth(MainMenuExpBar:GetWidth() * 0.5)
-        MainMenuXPBarTexture0:SetParent(WowApi.GamePad.HiddenFrame)
-        MainMenuXPBarTexture3:SetParent(WowApi.GamePad.HiddenFrame)
+        MainMenuXPBarTexture0:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
+        MainMenuXPBarTexture3:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
         ReputationWatchBar:SetPoint("CENTER", (ReputationWatchBar:GetWidth() * 0.5), 0)
         ReputationWatchBar:SetWidth(ReputationWatchBar:GetWidth() * 0.5)
         ReputationWatchBar.StatusBar:SetPoint("CENTER", (ReputationWatchBar.StatusBar:GetWidth() * 0.5), 0)
         ReputationWatchBar.StatusBar:SetWidth(ReputationWatchBar.StatusBar:GetWidth() * 0.5)
-        ReputationWatchBar.StatusBar.WatchBarTexture2:SetParent(WowApi.GamePad.HiddenFrame)
-        ReputationWatchBar.StatusBar.WatchBarTexture3:SetParent(WowApi.GamePad.HiddenFrame)
-        ReputationWatchBar.StatusBar.XPBarTexture2:SetParent(WowApi.GamePad.HiddenFrame)
-        ReputationWatchBar.StatusBar.XPBarTexture3:SetParent(WowApi.GamePad.HiddenFrame)
-        WowApi.GamePad.HiddenFrame:Hide()
+        ReputationWatchBar.StatusBar.WatchBarTexture2:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
+        ReputationWatchBar.StatusBar.WatchBarTexture3:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
+        ReputationWatchBar.StatusBar.XPBarTexture2:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
+        ReputationWatchBar.StatusBar.XPBarTexture3:SetParent(ByteTerraceWowApi.GamePad.HiddenFrame)
+        ByteTerraceWowApi.GamePad.HiddenFrame:Hide()
     end
 end
-function WowApi.Player:GetStatusIndicatorColor()
-    return (self.IsInCombat and WowApi.Colors.IsInCombat or (self.IsAwayFromKeyboard and WowApi.Colors.IsAwayFromKeyboard or WowApi.Colors.IsNeutral))
+function ByteTerraceWowApi.Player:GetStatusIndicatorColor()
+    return (self.IsInCombat and ByteTerraceWowApi.Colors.IsInCombat or (self.IsAwayFromKeyboard and ByteTerraceWowApi.Colors.IsAwayFromKeyboard or ByteTerraceWowApi.Colors.IsNeutral))
 end
-function WowApi.System:IsClassic()
+function ByteTerraceWowApi.System:IsClassic()
     return (WOW_PROJECT_CLASSIC == WOW_PROJECT_ID)
 end
-function WowApi.System:IsMainline()
+function ByteTerraceWowApi.System:IsMainline()
     return (WOW_PROJECT_MAINLINE == WOW_PROJECT_ID)
 end
 
-WowApi.Addons.HandlerMap = {
+ByteTerraceWowApi.Addons.HandlerMap = {
     ByteTerrace_GamePadActionBars = function()
         if (nil == ByteTerrace_GamePadActionBars) then
             ByteTerrace_GamePadActionBars = getDefaultSettings()
         end
 
-        local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
+        local gamePadActionBarsFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
 
-        WowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
-        WowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
+        ByteTerraceWowApi.GamePad:InitializeBindings(gamePadActionBarsFrame)
+        ByteTerraceWowApi.GamePad:InitializeDriver(gamePadActionBarsFrame)
 
         if ByteTerrace_GamePadActionBars.GamePad.ActionBars.IsEnabled then
-            WowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
+            ByteTerraceWowApi.GamePad:InitializeUserInterface(gamePadActionBarsFrame)
         end
     end,
 }
-WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
-WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
-WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
-WowApi.Events.HandlerMap = {
+ByteTerraceWowApi.Colors.IsAwayFromKeyboard = ByteTerraceWowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
+ByteTerraceWowApi.Colors.IsInCombat = ByteTerraceWowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
+ByteTerraceWowApi.Colors.IsNeutral = ByteTerraceWowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
+ByteTerraceWowApi.Events.HandlerMap = {
     ADDON_LOADED = function (key)
-        local handler = WowApi.Addons.HandlerMap[key]
+        local handler = ByteTerraceWowApi.Addons.HandlerMap[key]
 
         if (nil ~= handler) then
             handler()
         end
     end,
-    PLAYER_ENTERING_WORLD = WowApi.Events.OnPlayerEnteringWorld,
-    PLAYER_FLAGS_CHANGED = WowApi.Events.OnPlayerFlagsChanged,
+    PLAYER_ENTERING_WORLD = ByteTerraceWowApi.Events.OnPlayerEnteringWorld,
+    PLAYER_FLAGS_CHANGED = ByteTerraceWowApi.Events.OnPlayerFlagsChanged,
     PLAYER_INTERACTION_MANAGER_FRAME_HIDE = onPlayerInteractionManagerHide,
     PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
-    PLAYER_REGEN_DISABLED = WowApi.Events.OnPlayerRegenDisabled,
-    PLAYER_REGEN_ENABLED = WowApi.Events.OnPlayerRegenEnabled,
+    PLAYER_REGEN_DISABLED = ByteTerraceWowApi.Events.OnPlayerRegenDisabled,
+    PLAYER_REGEN_ENABLED = ByteTerraceWowApi.Events.OnPlayerRegenEnabled,
 }
-WowApi.Events:SetHandler(function (_, eventName, ...) WowApi.Events.HandlerMap[eventName](...) end)
-WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
-WowApi.GamePad.CursorFrame = WowApi.Frames.CreateFrame("Button", "GamePadCursorFrame", WowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
-WowApi.GamePad.EventFrame = WowApi.Frames.CreateFrame("Frame", "GamePadEventFrame", WowApi.Frames.UIParent, "SecureHandlerBaseTemplate")
-WowApi.GamePad.EventFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
-WowApi.GamePad.HiddenFrame = WowApi.Frames.CreateFrame("Frame", "GamePadHiddenFrame", WowApi.Frames.UIParent, "SecureHandlerStateTemplate")
+ByteTerraceWowApi.Events:SetHandler(function (_, eventName, ...) ByteTerraceWowApi.Events.HandlerMap[eventName](...) end)
+ByteTerraceWowApi.GamePad.ActionBarsFrame = ByteTerraceWowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", ByteTerraceWowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
+ByteTerraceWowApi.GamePad.CursorFrame = ByteTerraceWowApi.Frames.CreateFrame("Button", "GamePadCursorFrame", ByteTerraceWowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+ByteTerraceWowApi.GamePad.EventFrame = ByteTerraceWowApi.Frames.CreateFrame("Frame", "GamePadEventFrame", ByteTerraceWowApi.Frames.UIParent, "SecureHandlerBaseTemplate")
+ByteTerraceWowApi.GamePad.EventFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
+ByteTerraceWowApi.GamePad.HiddenFrame = ByteTerraceWowApi.Frames.CreateFrame("Frame", "GamePadHiddenFrame", ByteTerraceWowApi.Frames.UIParent, "SecureHandlerStateTemplate")
 
-for eventName, _ in pairs(WowApi.Events.HandlerMap) do
-    WowApi.Events:RegisterEvent(eventName)
+for eventName, _ in pairs(ByteTerraceWowApi.Events.HandlerMap) do
+    ByteTerraceWowApi.Events:RegisterEvent(eventName)
 end

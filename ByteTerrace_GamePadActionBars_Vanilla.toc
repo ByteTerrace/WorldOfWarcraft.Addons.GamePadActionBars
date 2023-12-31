@@ -2,6 +2,7 @@
 ## Interface: 11500
 ## Notes: Pardon all the dust!
 ## OptionalDeps: ConsolePad_Cursor, Immersion
+## SavedVariables: ByteTerrace_GamePadActionBars
 ## Title: GamePadActionBars
 ## Version: 0.0.0-alpha
 

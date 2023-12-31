@@ -1,4 +1,5 @@
 WowApi = {
+    Addons = {},
     Camera = {
         ResetView = ResetView,
         SaveView = SaveView,
@@ -10,6 +11,7 @@ WowApi = {
     Colors = {
         CreateColorFromBytes = CreateColorFromBytes,
     },
+    Events = {},
     Frames = {
         ClearOverrideBindings = ClearOverrideBindings,
         CreateFrame = CreateFrame,
@@ -159,17 +161,10 @@ local getDefaultSettings = function ()
 
     return settings
 end
-local onAddonLoaded = function (key)
-    local handler = WowApi.Addons.HandlerMap[key]
-
-    if (nil ~= handler) then
-        handler()
-    end
-end
 local onAddonLoaded_ByteTerrace_GamePadActionBars = function()
-    --if (nil == ByteTerrace_GamePadActionBars) then
+    if (nil == ByteTerrace_GamePadActionBars) then
         ByteTerrace_GamePadActionBars = getDefaultSettings()
-    --end
+    end
 
     local gamePadActionBarsFrame = WowApi.GamePad.ActionBarsFrame
 
@@ -181,36 +176,8 @@ local onAddonLoaded_ByteTerrace_GamePadActionBars = function()
     end
 end
 local onFrameEvent = function (...) end
-local onPlayerEnteringWorld = function (isInitialLogin)
-    if isInitialLogin then
-        WowApi.Camera:InitializeConsoleVariables()
-        WowApi.GamePad:InitializeConsoleVariables()
-    end
-
-    --MainMenuBar:UpdateSystemSettingValue(Enum.EditModeActionBarSetting.HideBarArt, 1)
-    WowApi.Camera.ResetView(5)
-    WowApi.Camera.SetView(5)
-    WowApi.Camera.ZoomOut(50.0)
-    WowApi.Camera.ZoomIn(1.25)
-    WowApi.Camera.SaveView(5)
-    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
-end
-local onPlayerFlagsChanged = function ()
-    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
-    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
-end
 local onPlayerInteractionManagerHide = function() --[[SetGamePadCursorControl(false)]] end
 local onPlayerInteractionManagerShow = function() --[[SetGamePadCursorControl(true)]] end
-local onPlayerRegenDisabled = function ()
-    WowApi.Player.IsInCombat = true
-    WowApi.GamePad.SetVibration("High", 1.0)
-    onPlayerFlagsChanged()
-end
-local onPlayerRegenEnabled = function ()
-    WowApi.Player.IsInCombat = false
-    WowApi.GamePad.SetVibration("Low", 0.5)
-    onPlayerFlagsChanged()
-end
 
 function WowApi.Camera:InitializeConsoleVariables()
     -- EXPERIMENTAL: action camera configuration
@@ -233,6 +200,47 @@ function WowApi.ConsoleVariables:Set(key, value)
     end
 
     C_CVar.SetCVar(key, value)
+end
+function WowApi.Events:OnAddonLoaded(key)
+    local handler = WowApi.Addons.HandlerMap[key]
+
+    if (nil ~= handler) then
+        handler()
+    end
+end
+function WowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
+    if isInitialLogin then
+        WowApi.Camera:InitializeConsoleVariables()
+        WowApi.GamePad:InitializeConsoleVariables()
+    end
+
+    --MainMenuBar:UpdateSystemSettingValue(Enum.EditModeActionBarSetting.HideBarArt, 1)
+    WowApi.Camera.ResetView(5)
+    WowApi.Camera.SetView(5)
+    WowApi.Camera.ZoomOut(50.0)
+    WowApi.Camera.ZoomIn(1.25)
+    WowApi.Camera.SaveView(5)
+    WowApi.Events:OnPlayerFlagsChanged()
+end
+function WowApi.Events:OnPlayerFlagsChanged()
+    WowApi.Player.IsAwayFromKeyboard = IsChatAFK()
+    WowApi.GamePad.SetLedColor(WowApi.Player:GetStatusIndicatorColor())
+end
+function WowApi.Events:OnPlayerRegenDisabled()
+    WowApi.Player.IsInCombat = true
+    WowApi.GamePad.SetVibration("High", 1.0)
+    WowApi.Events:OnPlayerFlagsChanged()
+end
+function WowApi.Events:OnPlayerRegenEnabled()
+    WowApi.Player.IsInCombat = false
+    WowApi.GamePad.SetVibration("Low", 0.5)
+    WowApi.Events:OnPlayerFlagsChanged()
+end
+function WowApi.Events:RegisterEvent(eventName)
+    WowApi.GamePad.EventFrame:RegisterEvent(eventName)
+end
+function WowApi.Events:SetHandler(func)
+    onFrameEvent = func
 end
 function WowApi.GamePad:InitializeBindings(frame)
     local isDualSenseControllerConnected = false
@@ -496,54 +504,21 @@ end
 function WowApi.System:IsMainline()
     return (WOW_PROJECT_MAINLINE == WOW_PROJECT_ID)
 end
-function WowApi.Timers:CreateTimer(delay, action, isRepeating, cancellationToken)
-    local timer = {}
 
-    timer.callback = function()
-        if ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested)) then
-            timer.func(timer.arguments)
-        end
-
-        if (timer.isRepeating and ((nil == timer.cancellationToken) or not(timer.cancellationToken.IsCancellationRequested))) then
-            C_Timer.After(timer.delay, timer.callback)
-        end
-    end
-    timer.cancellationToken = ((nil ~= cancellationToken) and cancellationToken or self:NewCancellationToken())
-    timer.delay = delay
-    timer.func = ((nil ~= action) and action or function (...) end)
-    timer.isRepeating = isRepeating
-
-    return timer
-end
-function WowApi.Timers:NewCancellationToken()
-    return { IsCancellationRequested = false, }
-end
-function WowApi.Timers:StartTimer(timer, ...)
-    timer.arguments = ...
-
-    C_Timer.After(timer.delay, timer.callback)
-end
-
-WowApi.Addons = {
-    HandlerMap = {
-        ByteTerrace_GamePadActionBars = onAddonLoaded_ByteTerrace_GamePadActionBars,
-    },
+WowApi.Addons.HandlerMap = {
+    ByteTerrace_GamePadActionBars = onAddonLoaded_ByteTerrace_GamePadActionBars,
 }
 WowApi.Colors.IsAwayFromKeyboard = WowApi.Colors.CreateColorFromBytes(255, 255, 0, 255)
 WowApi.Colors.IsInCombat = WowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
 WowApi.Colors.IsNeutral = WowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
-WowApi.Events = {
-    HandlerMap = {
-        ADDON_LOADED = onAddonLoaded,
-        PLAYER_ENTERING_WORLD = onPlayerEnteringWorld,
-        PLAYER_FLAGS_CHANGED = onPlayerFlagsChanged,
-        PLAYER_INTERACTION_MANAGER_FRAME_HIDE = onPlayerInteractionManagerHide,
-        PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
-        PLAYER_REGEN_DISABLED = onPlayerRegenDisabled,
-        PLAYER_REGEN_ENABLED = onPlayerRegenEnabled,
-    },
-    RegisterEvent = function (_, eventName) WowApi.GamePad.EventFrame:RegisterEvent(eventName) end,
-    SetHandler = function (_, functor) onFrameEvent = functor end,
+WowApi.Events.HandlerMap = {
+    ADDON_LOADED = WowApi.Events.OnAddonLoaded,
+    PLAYER_ENTERING_WORLD = WowApi.Events.OnPlayerEnteringWorld,
+    PLAYER_FLAGS_CHANGED = WowApi.Events.OnPlayerFlagsChanged,
+    PLAYER_INTERACTION_MANAGER_FRAME_HIDE = onPlayerInteractionManagerHide,
+    PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
+    PLAYER_REGEN_DISABLED = WowApi.Events.OnPlayerRegenDisabled,
+    PLAYER_REGEN_ENABLED = WowApi.Events.OnPlayerRegenEnabled,
 }
 WowApi.Events:SetHandler(function (_, eventName, ...) WowApi.Events.HandlerMap[eventName](...) end)
 WowApi.GamePad.ActionBarsFrame = WowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", WowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")

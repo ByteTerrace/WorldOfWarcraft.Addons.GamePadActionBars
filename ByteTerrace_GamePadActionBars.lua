@@ -2,7 +2,7 @@ local GamePadActionBarsCustomPadNameSelect = "PADSOCIAL"
 local GamePadActionBarsCustomPadNameStart = "PADFORWARD"
 local GamePadActionBarsDefaultActiveAlpha = 1.0
 local GamePadActionBarsDefaultOffsetX = 0
-local GamePadActionBarsDefaultOffsetY = 85
+local GamePadActionBarsDefaultOffsetY = 100
 local GamePadActionBarsDefaultPassiveAlpha = 0.5
 local GamePadActionBarsPadLshoulderState1Binding = "TARGETNEARESTENEMY"
 local GamePadActionBarsPadLshoulderState2Binding = "TARGETNEARESTFRIEND"
@@ -87,6 +87,7 @@ WowApi = {
             ReputationWatchBar = ReputationWatchBar,
             SocialsMicroButton = SocialsMicroButton,
             SpellbookMicroButton = SpellbookMicroButton,
+            StanceBarFrame = StanceBarFrame,
             TalentMicroButton = TalentMicroButton,
             WorldMapMicroButton = WorldMapMicroButton,
         },
@@ -499,12 +500,14 @@ function WowApi.GamePad:InitializeUserInterface(frame)
     local mainMenuExpBar = WowApi.UserInterface.ModifiedFrames.MainMenuExpBar
     local petActionButton1 = WowApi.UserInterface.ModifiedFrames.PetActionButton1
     local reputationWatchBar = WowApi.UserInterface.ModifiedFrames.ReputationWatchBar
+    local stanceBarFrame = WowApi.UserInterface.ModifiedFrames.StanceBarFrame
 
     -- owner frames
     local bagButtonOwnerFrame = CreateFrame("Frame", "BagButtonOwnerFrame", mainMenuBar)
     local castingBarOwnerFrame = CreateFrame("Frame", "CastingBarOwnerFrame", mainMenuBar)
     local microButtonOwnerFrame = CreateFrame("Frame", "MicroButtonOwnerFrame", mainMenuBar)
     local petActionButtonOwnerFrame = CreateFrame("Frame", "PetActionButtonOwnerFrame", mainMenuBar)
+    local stanceBarOwnerFrame = CreateFrame("Frame", "StanceBarOwnerFrame", mainMenuBar)
 
     -- reorganize user interface
     bagButtonOwnerFrame:SetPoint("CENTER", 0, -30)
@@ -524,6 +527,9 @@ function WowApi.GamePad:InitializeUserInterface(frame)
     petActionButtonOwnerFrame:SetScale(0.75)
     petActionButtonOwnerFrame:SetSize(20, 20)
     petActionButtonOwnerFrame:Show()
+    stanceBarOwnerFrame:SetPoint("CENTER", -(stanceBarFrame:GetWidth() * 0.5), -(GamePadActionBarsDefaultOffsetY + 20))
+    stanceBarOwnerFrame:SetSize(20, 20)
+    stanceBarOwnerFrame:Show()
 
     for i = 0, 3 do
         _G[("CharacterBag" .. i .. "Slot")]:SetParent(bagButtonOwnerFrame)
@@ -544,7 +550,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
     castingBarFrame:SetPoint("CENTER", 0, 0)
     castingBarFrame.SetPoint = function(...) end
     characterMicroButton:ClearAllPoints()
-    characterMicroButton:SetPoint("CENTER", -(characterMicroButton:GetWidth() * 3.175), 0)
+    characterMicroButton:SetPoint("CENTER", -(characterMicroButton:GetWidth() * 3.175), -10)
     mainMenuBar:ClearAllPoints()
     mainMenuBar:SetPoint("BOTTOM", GamePadActionBarsDefaultOffsetX, GamePadActionBarsDefaultOffsetY)
     mainMenuBar:SetSize(20, 20)
@@ -556,12 +562,14 @@ function WowApi.GamePad:InitializeUserInterface(frame)
     mainMenuExpBar:SetPoint("CENTER", mainMenuBar, 0, 5)
     mainMenuExpBar:SetWidth(110)
     petActionButton1:ClearAllPoints()
-    petActionButton1:SetPoint("CENTER", petActionButtonOwnerFrame, "CENTER", -(petActionButton1:GetWidth() * 5.71), -120)
+    petActionButton1:SetPoint("CENTER", petActionButtonOwnerFrame, "CENTER", -(petActionButton1:GetWidth() * 5.71), -140)
     reputationWatchBar:ClearAllPoints()
     reputationWatchBar:SetWidth(mainMenuExpBar:GetWidth())
     reputationWatchBar.StatusBar:ClearAllPoints()
     reputationWatchBar.StatusBar:SetPoint("TOP", mainMenuExpBar, 0, reputationWatchBar.StatusBar:GetHeight())
     reputationWatchBar.StatusBar:SetWidth(reputationWatchBar:GetWidth())
+    stanceBarFrame:SetAllPoints(stanceBarOwnerFrame)
+    stanceBarFrame:SetParent(stanceBarOwnerFrame)
 
     for _, hiddenFrame in pairs(WowApi.UserInterface.HiddenFrames) do
         hiddenFrame:SetParent(frame)
@@ -574,7 +582,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
         local isReflection = (5 < iMod12)
-        local xOffset = ((((1 == iMod6) or (3 == iMod6) or (4 == iMod6)) and ((1 == iMod6) and 80 or 160) or 120) * (isReflection and 1 or -1))
+        local xOffset = ((((1 == iMod6) or (3 == iMod6) or (4 == iMod6)) and ((1 == iMod6) and 90 or 170) or 130) * (isReflection and 1 or -1))
         local yOffset = (((1 == iMod2) and 0 or 40) * ((((0 == iMod6) or (4 == iMod6))) and 1 or -1))
 
         if ((i > 11) and (i < 24)) then
@@ -592,6 +600,8 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         local actionButton = _G[(actionBarName .. (iMod12 + 1))]
         local gamePadIconFrame = WowApi.Frames.CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
         local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
+        local gamePadIconTextureOffsetX = (((iMod6 == 1) and 17.5 or ((iMod6 == 3) and -17.5 or 0)) * (isReflection and -1 or 1))
+        local gamePadIconTextureOffsetY = ((iMod6 == 0) and 17.5 or ((iMod6 == 2) and -17.5 or 0))
 
         actionButton.GamePadIconFrame = gamePadIconFrame
         actionButton:ClearAllPoints()
@@ -600,7 +610,7 @@ function WowApi.GamePad:InitializeUserInterface(frame)
         gamePadIconFrame:SetAllPoints(actionButton)
         gamePadIconFrame:SetFrameLevel(actionButton:GetFrameLevel() + 1)
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-        gamePadIconTexture:SetPoint("CENTER", 0, 0)
+        gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
         gamePadIconTexture:SetSize(24, 24)
         gamePadIconTexture:SetTexture(WowApi.GamePad.ButtonIconMap[iMod12])
         gamePadIconFrame.Texture = gamePadIconTexture

@@ -73,7 +73,7 @@ local getDefaultSettings = function ()
                     States = {
                         [1] = { Binding = "TARGETNEARESTENEMY", },
                         [2] = { Binding = "TARGETNEARESTFRIEND", },
-                        [3] = { Binding = "TOGGLESHEATH", },
+                        [3] = { Binding = "UNBOUND", },
                     }
                 },
                 PadShoulderRight = {
@@ -308,7 +308,6 @@ function ByteTerraceWowApi.GamePad:InitializeDriver(frame)
     frame:EnableGamePadButton(true)
     frame:RegisterForClicks("AnyDown", "AnyUp")
     frame:SetAttribute("action", 1)
-    frame:SetAttribute("pressAndHoldAction", true)
     frame:SetAttribute("IsEnabled", true)
     frame:SetAttribute("PadTriggerLeft-IsDown", false)
     frame:SetAttribute("PadTriggerRight-IsDown", false)
@@ -318,7 +317,6 @@ function ByteTerraceWowApi.GamePad:InitializeDriver(frame)
     frame:SetAttribute("State4-ActionBarPage", 4)
     frame:SetAttribute("State5-ActionBarPage", 3)
     frame:SetAttribute("type", "actionbar")
-    frame:SetAttribute("typerelease", "actionbar")
     frame:SetFrameRef("ActionButton5", ActionButton5)
     frame:SetFrameRef("ActionButton9", ActionButton9)
     frame:SetFrameRef("ActionButton11", ActionButton11)
@@ -369,7 +367,7 @@ function ByteTerraceWowApi.GamePad:InitializeDriver(frame)
                         self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
                     else
                         self:SetAttribute("action", self:GetAttribute("State3-ActionBarPage"))
-                        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeft-State3-Binding"))
+                        self:ClearBinding("PADLSHOULDER")
                         self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State3-Binding"))
                         self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State3-Binding"))
                         self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State3-Binding"))
@@ -390,6 +388,11 @@ function ByteTerraceWowApi.GamePad:InitializeDriver(frame)
             end
         end
     ]])
+
+    if ByteTerraceWowApi.System:IsMainline() then
+        frame:SetAttribute("pressAndHoldAction", true)
+        frame:SetAttribute("typerelease", "actionbar")
+    end
 end
 function ByteTerraceWowApi.GamePad:InitializeUserInterface(frame)
     local buttonSize = ByteTerrace_GamePadActionBars.GamePad.ActionBars.ButtonSize

@@ -12,19 +12,19 @@ The mod sets up temporary bindings using a hidden secure button frame that captu
 
 These states map to their corresponding action bar page in the World of Warcraft UI, along with a set of predefined bindings that are outlined in the table below.
 
-| GamePad Button Name | State 1 Binding Name    | State 2 Binding Name    | State 3 Binding Name | State 4-5 Binding Name |
-| ------------------- | ----------------------- | ----------------------- | -------------------- | ---------------------- |
-| `PADSELECT`         | **TOGGLEWORLDMAP**      | **TOGGLESOCIAL**        | **TOGGLECHARACTER0** | **TOGGLEWORLDMAP**     |
-| `PADSTART`          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU         |
-| `PADDUP`            | ACTIONBUTTON1           | ACTIONBUTTON1           | ACTIONBUTTON1        | ACTIONBUTTON1          |
-| `PADDRIGHT`         | ACTIONBUTTON2           | ACTIONBUTTON2           | ACTIONBUTTON2        | ACTIONBUTTON2          |
-| `PADDDOWN`          | ACTIONBUTTON3           | ACTIONBUTTON3           | ACTIONBUTTON3        | ACTIONBUTTON3          |
-| `PADDLEFT`          | ACTIONBUTTON4           | ACTIONBUTTON4           | ACTIONBUTTON4        | ACTIONBUTTON4          |
-| `PADLSHOULDER`      | **TARGETNEARESTENEMY**  | **TARGETNEARESTFRIEND** | **TOGGLESHEATH**     | ACTIONBUTTON5          |
-| `PADLSTICK`         | ACTIONBUTTON6           | ACTIONBUTTON6           | ACTIONBUTTON6        | ACTIONBUTTON6          |
-| `PAD4`              | ACTIONBUTTON7           | ACTIONBUTTON7           | ACTIONBUTTON7        | ACTIONBUTTON7          |
-| `PAD3`              | ACTIONBUTTON8           | ACTIONBUTTON8           | ACTIONBUTTON8        | ACTIONBUTTON8          |
-| `PAD1`              | **JUMP**                | ACTIONBUTTON9           | ACTIONBUTTON9        | ACTIONBUTTON9          |
-| `PAD2`              | ACTIONBUTTON10          | ACTIONBUTTON10          | ACTIONBUTTON10       | ACTIONBUTTON10         |
-| `PADRSHOULDER`      | **INTERACTMOUSEOVER**   | **TOGGLEAUTORUN**       | **FLIPCAMERAYAW**    | ACTIONBUTTON11         |
-| `PADRSTICK`         | ACTIONBUTTON12          | ACTIONBUTTON12          | ACTIONBUTTON12       | ACTIONBUTTON12         |
+| GamePad Button Name | State 1 Binding Name    | State 2 Binding Name    | State 3 Binding Name | State 4 Binding Name | State 5 Binding Name |
+| ------------------- | ----------------------- | ----------------------- | -------------------- | -------------------- | -------------------- |
+| `PADSELECT`         | **TOGGLEWORLDMAP**      | **OPENALLBAGS**         | **TOGGLECHARACTER0** | **TOGGLESOCIAL**     | **TOGGLESPELLBOOK**  |
+| `PADSTART`          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU          | TOGGLEGAMEMENU       | TOGGLEGAMEMENU       | TOGGLEGAMEMENU       |
+| `PADDUP`            | ACTIONBUTTON1           | ACTIONBUTTON1           | ACTIONBUTTON1        | ACTIONBUTTON1        | ACTIONBUTTON1        |
+| `PADDRIGHT`         | ACTIONBUTTON2           | ACTIONBUTTON2           | ACTIONBUTTON2        | ACTIONBUTTON2        | ACTIONBUTTON2        |
+| `PADDDOWN`          | ACTIONBUTTON3           | ACTIONBUTTON3           | ACTIONBUTTON3        | ACTIONBUTTON3        | ACTIONBUTTON3        |
+| `PADDLEFT`          | ACTIONBUTTON4           | ACTIONBUTTON4           | ACTIONBUTTON4        | ACTIONBUTTON4        | ACTIONBUTTON4        |
+| `PADLSHOULDER`      | **TARGETNEARESTENEMY**  | **TARGETNEARESTFRIEND** | **UNBOUND**          | ACTIONBUTTON5        | ACTIONBUTTON5        |
+| `PADLSTICK`         | ACTIONBUTTON6           | ACTIONBUTTON6           | ACTIONBUTTON6        | ACTIONBUTTON6        | ACTIONBUTTON6        |
+| `PAD4`              | ACTIONBUTTON7           | ACTIONBUTTON7           | ACTIONBUTTON7        | ACTIONBUTTON7        | ACTIONBUTTON7        |
+| `PAD3`              | ACTIONBUTTON8           | ACTIONBUTTON8           | ACTIONBUTTON8        | ACTIONBUTTON8        | ACTIONBUTTON8        |
+| `PAD1`              | **JUMP**                | ACTIONBUTTON9           | ACTIONBUTTON9        | ACTIONBUTTON9        | ACTIONBUTTON9        |
+| `PAD2`              | ACTIONBUTTON10          | ACTIONBUTTON10          | ACTIONBUTTON10       | ACTIONBUTTON10       | ACTIONBUTTON10       |
+| `PADRSHOULDER`      | **INTERACTMOUSEOVER**   | **TOGGLEAUTORUN**       | **FLIPCAMERAYAW**    | ACTIONBUTTON11       | ACTIONBUTTON11       |
+| `PADRSTICK`         | ACTIONBUTTON12          | ACTIONBUTTON12          | ACTIONBUTTON12       | ACTIONBUTTON12       | ACTIONBUTTON12       |

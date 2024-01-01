@@ -42,3 +42,11 @@ These states map to their corresponding action bar page in the World of Warcraft
 **State 3 Example:**
 
 ![](/Documentation/Images/State3.png)
+
+**State 4 Example:**
+
+![](/Documentation/Images/State4.png)
+
+**State 5 Example:**
+
+![](/Documentation/Images/State5.png)

@@ -28,3 +28,17 @@ These states map to their corresponding action bar page in the World of Warcraft
 | `PAD2`              | ACTIONBUTTON10         | BOTTOMLEFTACTIONBUTTON10 | BOTTOMRIGHTACTIONBUTTON10 | LEFTACTIONBUTTON10 | RIGHTACTIONBUTTON10 |
 | `PADRSHOULDER`      | **INTERACTMOUSEOVER**  | **TOGGLEAUTORUN**        | **FLIPCAMERAYAW**         | LEFTACTIONBUTTON11 | RIGHTACTIONBUTTON11 |
 | `PADRSTICK`         | ACTIONBUTTON12         | BOTTOMLEFTACTIONBUTTON12 | BOTTOMRIGHTACTIONBUTTON12 | LEFTACTIONBUTTON12 | RIGHTACTIONBUTTON12 |
+
+### _Screenshots_
+
+**State 1 Example:**
+
+![](/Documentation/Images/State1.png)
+
+**State 2 Example:**
+
+![](/Documentation/Images/State2.png)
+
+**State 3 Example:**
+
+![](/Documentation/Images/State3.png)

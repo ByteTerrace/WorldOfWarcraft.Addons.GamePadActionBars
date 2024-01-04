@@ -162,8 +162,6 @@ local getDefaultSettings = function ()
     return settings
 end
 local onFrameEvent = function (...) end
-local onPlayerInteractionManagerHide = function() --[[SetGamePadCursorControl(false)]] end
-local onPlayerInteractionManagerShow = function() --[[SetGamePadCursorControl(true)]] end
 
 function ByteTerraceWowApi.Camera:InitializeConsoleVariables()
     -- EXPERIMENTAL: action camera configuration
@@ -187,13 +185,19 @@ function ByteTerraceWowApi.ConsoleVariables:Set(key, value)
 
     C_CVar.SetCVar(key, value)
 end
-function ByteTerraceWowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
-    if isInitialLogin then
+function ByteTerraceWowApi.Events.OnAddonLoaded(addOnName)
+    local handler = ByteTerraceWowApi.Addons.HandlerMap[addOnName]
+
+    if (nil ~= handler) then
+        handler()
+    end
+end
+function ByteTerraceWowApi.Events.OnPlayerEnteringWorld(isInitialLogin, isReloadingUi)
+    if (isInitialLogin or isReloadingUi) then
         ByteTerraceWowApi.Camera:InitializeConsoleVariables()
         ByteTerraceWowApi.GamePad:InitializeConsoleVariables()
     end
 
-    --MainMenuBar:UpdateSystemSettingValue(Enum.EditModeActionBarSetting.HideBarArt, 1)
     ByteTerraceWowApi.Camera.ResetView(5)
     ByteTerraceWowApi.Camera.SetView(5)
     ByteTerraceWowApi.Camera.ZoomOut(50.0)
@@ -201,16 +205,16 @@ function ByteTerraceWowApi.Events:OnPlayerEnteringWorld(isInitialLogin)
     ByteTerraceWowApi.Camera.SaveView(5)
     ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
 end
-function ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
+function ByteTerraceWowApi.Events.OnPlayerFlagsChanged()
     ByteTerraceWowApi.Player.IsAwayFromKeyboard = IsChatAFK()
     ByteTerraceWowApi.GamePad.SetLedColor(ByteTerraceWowApi.Player:GetStatusIndicatorColor())
 end
-function ByteTerraceWowApi.Events:OnPlayerRegenDisabled()
+function ByteTerraceWowApi.Events.OnPlayerRegenDisabled()
     ByteTerraceWowApi.Player.IsInCombat = true
     ByteTerraceWowApi.GamePad.SetVibration("High", 1.0)
     ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
 end
-function ByteTerraceWowApi.Events:OnPlayerRegenEnabled()
+function ByteTerraceWowApi.Events.OnPlayerRegenEnabled()
     ByteTerraceWowApi.Player.IsInCombat = false
     ByteTerraceWowApi.GamePad.SetVibration("Low", 0.5)
     ByteTerraceWowApi.Events:OnPlayerFlagsChanged()
@@ -507,23 +511,14 @@ ByteTerraceWowApi.Colors.IsAwayFromKeyboard = ByteTerraceWowApi.Colors.CreateCol
 ByteTerraceWowApi.Colors.IsInCombat = ByteTerraceWowApi.Colors.CreateColorFromBytes(255, 0, 0, 255)
 ByteTerraceWowApi.Colors.IsNeutral = ByteTerraceWowApi.Colors.CreateColorFromBytes(0, 255, 0, 255)
 ByteTerraceWowApi.Events.HandlerMap = {
-    ADDON_LOADED = function (key)
-        local handler = ByteTerraceWowApi.Addons.HandlerMap[key]
-
-        if (nil ~= handler) then
-            handler()
-        end
-    end,
+    ADDON_LOADED = ByteTerraceWowApi.Events.OnAddonLoaded,
     PLAYER_ENTERING_WORLD = ByteTerraceWowApi.Events.OnPlayerEnteringWorld,
     PLAYER_FLAGS_CHANGED = ByteTerraceWowApi.Events.OnPlayerFlagsChanged,
-    PLAYER_INTERACTION_MANAGER_FRAME_HIDE = onPlayerInteractionManagerHide,
-    PLAYER_INTERACTION_MANAGER_FRAME_SHOW = onPlayerInteractionManagerShow,
     PLAYER_REGEN_DISABLED = ByteTerraceWowApi.Events.OnPlayerRegenDisabled,
     PLAYER_REGEN_ENABLED = ByteTerraceWowApi.Events.OnPlayerRegenEnabled,
 }
 ByteTerraceWowApi.Events:SetHandler(function (_, eventName, ...) ByteTerraceWowApi.Events.HandlerMap[eventName](...) end)
 ByteTerraceWowApi.GamePad.ActionBarsFrame = ByteTerraceWowApi.Frames.CreateFrame("Button", "GamePadActionBarsFrame", ByteTerraceWowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate")
-ByteTerraceWowApi.GamePad.CursorFrame = ByteTerraceWowApi.Frames.CreateFrame("Button", "GamePadCursorFrame", ByteTerraceWowApi.Frames.UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 ByteTerraceWowApi.GamePad.EventFrame = ByteTerraceWowApi.Frames.CreateFrame("Frame", "GamePadEventFrame", ByteTerraceWowApi.Frames.UIParent, "SecureHandlerBaseTemplate")
 ByteTerraceWowApi.GamePad.EventFrame:HookScript("OnEvent", function(...) onFrameEvent(...) end)
 ByteTerraceWowApi.GamePad.HiddenFrame = ByteTerraceWowApi.Frames.CreateFrame("Frame", "GamePadHiddenFrame", ByteTerraceWowApi.Frames.UIParent, "SecureHandlerStateTemplate")

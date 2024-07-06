@@ -64,8 +64,7 @@ Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     Events_OnPlayerFlagsChanged()
 end
 Events_OnPlayerFlagsChanged = function ()
-    ByteTerraceWowApi.Player.IsAwayFromKeyboard = IsChatAFK()
-    C_GamePad.SetLedColor(Player_GetStatusIndicatorColor(ByteTerraceWowApi.Player))
+    C_GamePad.SetLedColor(Player_GetStatusIndicatorColor(ByteTerraceWowApi.Colors, IsChatAFK(), ByteTerraceWowApi.Player.IsInCombat))
 end
 Events_OnPlayerRegenDisabled = function ()
     ByteTerraceWowApi.Player.IsInCombat = true
@@ -160,7 +159,7 @@ GamePad_InitializeConsoleVariables = function ()
         ConsoleVariables_Set(key, value)
     end
 end
-GamePad_InitializeDriver = function (hiddenFrame, parentFrame)
+GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
     parentFrame:EnableGamePadButton(true)
     parentFrame:RegisterForClicks("AnyDown", "AnyUp")
     parentFrame:SetAttribute("action", 1)
@@ -177,6 +176,7 @@ GamePad_InitializeDriver = function (hiddenFrame, parentFrame)
     parentFrame:SetFrameRef("ActionButton9", ActionButton9)
     parentFrame:SetFrameRef("ActionButton11", ActionButton11)
     parentFrame:SetFrameRef("HiddenFrame", hiddenFrame)
+    parentFrame:SetFrameRef("JumpButton", jumpButton)
     parentFrame:SetFrameRef("ParentFrame", parentFrame)
     parentFrame:SetPoint("BOTTOM", ByteTerrace_GamePadActionBars.GamePad.ActionBars.OffsetX, ByteTerrace_GamePadActionBars.GamePad.ActionBars.OffsetY)
     parentFrame:WrapScript(parentFrame, "OnClick", [[
@@ -185,10 +185,11 @@ GamePad_InitializeDriver = function (hiddenFrame, parentFrame)
             local actionButton9 = self:GetFrameRef("ActionButton9")
             local actionButton11 = self:GetFrameRef("ActionButton11")
             local hiddenFrame = self:GetFrameRef("HiddenFrame")
+            local jumpButton = self:GetFrameRef("JumpButton")
             local parentFrame = self:GetFrameRef("ParentFrame")
 
             if (down) then
-                actionButton9:SetParent(parentFrame)
+                jumpButton:Hide()
                 self:SetBindingClick(true, "PAD1", actionButton9)
 
                 if "PADLTRIGGER" == button then
@@ -229,8 +230,8 @@ GamePad_InitializeDriver = function (hiddenFrame, parentFrame)
                     end
                 end
             else
+                jumpButton:Show()
                 actionButton5:SetParent(hiddenFrame)
-                actionButton9:SetParent(hiddenFrame)
                 actionButton11:SetParent(hiddenFrame)
                 self:SetAttribute("action", self:GetAttribute("State1-ActionBarPage"))
                 self:SetAttribute("PadTriggerLeft-IsDown", false)
@@ -249,7 +250,7 @@ GamePad_InitializeDriver = function (hiddenFrame, parentFrame)
         parentFrame:SetAttribute("typerelease", "actionbar")
     end
 end
-GamePad_InitializeUserInterface = function (hiddenFrame, parentFrame)
+GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame)
     VERTICAL_MULTI_BAR_HEIGHT = 1 -- DIRTY HACK! Only tested in "Vanilla". See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
 
     local buttonSize = ByteTerrace_GamePadActionBars.GamePad.ActionBars.ButtonSize
@@ -259,7 +260,7 @@ GamePad_InitializeUserInterface = function (hiddenFrame, parentFrame)
     local xPadding = 60
     local yPadding = 0
 
-    for i = 0, 60 do
+    for i = 0, 12 do
         local actionBarName = "ActionButton"
         local alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenActive
         local iMod2 = (i % 2)
@@ -297,7 +298,6 @@ GamePad_InitializeUserInterface = function (hiddenFrame, parentFrame)
         local gamePadIconTextureOffsetX = (((iMod6 == 1) and 17.5 or ((iMod6 == 3) and -17.5 or 0)) * (isReflection and -1 or 1))
         local gamePadIconTextureOffsetY = ((iMod6 == 0) and 17.5 or ((iMod6 == 2) and -17.5 or 0))
 
-        actionButton.GamePadIconFrame = gamePadIconFrame
         actionButton.HotKey:SetParent(hiddenFrame)
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
@@ -307,12 +307,24 @@ GamePad_InitializeUserInterface = function (hiddenFrame, parentFrame)
         gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
         gamePadIconTexture:SetSize(24, 24)
         gamePadIconTexture:SetTexture(ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[iMod12])
-        gamePadIconFrame.Texture = gamePadIconTexture
 
-        if ((i == 4) or (i == 8) or (i == 10)) then
+        if ((i == 4) or (i == 10)) then
             actionButton:SetParent(hiddenFrame)
-        elseif (i > 11) then
-            gamePadIconFrame:Hide()
+        elseif (i == 8) then
+            local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "ARTWORK")
+            local jumpIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
+            local jumpIconTexture = jumpIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+
+            jumpButton:Disable()
+            jumpButton:SetAllPoints(actionButton)
+            jumpButtonTexture:SetPoint("Center", 0, 0)
+            jumpButtonTexture:SetSize(_G[(actionBarName .. (iMod12 + 1) .. "Icon")]:GetSize())
+            jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
+            jumpIconFrame:SetAllPoints(jumpButton)
+            jumpIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+            jumpIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+            jumpIconTexture:SetSize(24, 24)
+            jumpIconTexture:SetTexture(ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[iMod12])
         end
     end
 
@@ -345,8 +357,8 @@ GamePad_InitializeUserInterface = function (hiddenFrame, parentFrame)
 
     hiddenFrame:Hide()
 end
-Player_GetStatusIndicatorColor = function (player)
-    return (player.IsInCombat and ByteTerraceWowApi.Colors.IsInCombat or (player.IsAwayFromKeyboard and ByteTerraceWowApi.Colors.IsAwayFromKeyboard or ByteTerraceWowApi.Colors.IsNeutral))
+Player_GetStatusIndicatorColor = function (colors, isAwayFromKeyboard, isInCombat)
+    return (isInCombat and colors.IsInCombat or (isAwayFromKeyboard and colors.IsAwayFromKeyboard or colors.IsNeutral))
 end
 System_GetDefaultSettings = function ()
     local settings = {
@@ -488,20 +500,20 @@ ByteTerraceWowApi = {
         HandlerMap = {
             ByteTerrace_GamePadActionBars = function()
                 local addonSettings = _G["ByteTerrace_GamePadActionBars"]
-                local hiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate")
+                local hiddenFrame = ByteTerraceWowApi.GamePad.HiddenFrame
+                local jumpButton = ByteTerraceWowApi.GamePad.JumpButton
+                local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
 
                 if (nil == addonSettings) then
                     addonSettings = System_GetDefaultSettings()
                     _G["ByteTerrace_GamePadActionBars"] = addonSettings
                 end
 
-                local gamePadActionBarsFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
-
-                GamePad_InitializeBindings(gamePadActionBarsFrame)
-                GamePad_InitializeDriver(hiddenFrame, gamePadActionBarsFrame)
+                GamePad_InitializeBindings(parentFrame)
+                GamePad_InitializeDriver(hiddenFrame, jumpButton, parentFrame)
 
                 if addonSettings.GamePad.ActionBars.IsEnabled then
-                    GamePad_InitializeUserInterface(hiddenFrame, gamePadActionBarsFrame)
+                    GamePad_InitializeUserInterface(hiddenFrame, jumpButton, parentFrame)
                 end
             end,
         },
@@ -527,11 +539,12 @@ ByteTerraceWowApi = {
         ActionBarsFrame = CreateFrame("Button", "GamePadActionBarsFrame", UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate"),
         EventFrame = CreateFrame("Frame", "GamePadEventFrame", UIParent, "SecureHandlerBaseTemplate"),
         EventHandler = function(...) end,
+        HiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate"),
+        JumpButton = CreateFrame("CheckButton", "GamePadJumpButton", UIParent, "ActionBarButtonTemplate"),
     },
     Player = {
-        IsAwayFromKeyboard = IsChatAFK(),
         IsInCombat = InCombatLockdown(),
-    },
+    }
 }
 
 ByteTerraceWowApi.Events.SetHandler(function (_, eventName, ...) ByteTerraceWowApi.Events.HandlerMap[eventName](...) end)

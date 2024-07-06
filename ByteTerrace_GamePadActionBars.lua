@@ -41,10 +41,19 @@ Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
         Camera_InitializeConsoleVariables()
         GamePad_InitializeConsoleVariables()
 
-        Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", false);
-        Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", false);
-        Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", false);
-        Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", false);
+        if System_IsClassic() then
+            _G["SHOW_MULTI_ACTIONBAR_1"] = nil
+            _G["SHOW_MULTI_ACTIONBAR_2"] = nil
+            _G["SHOW_MULTI_ACTIONBAR_3"] = nil
+            _G["SHOW_MULTI_ACTIONBAR_4"] = nil
+
+            MultiActionBar_Update()
+        else -- TODO: Determine if there is a way to apply these settings ephemerally; as we do in classic.
+            Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", false)
+            Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", false)
+            Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", false)
+            Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", false)
+        end
     end
 
     ResetView(5)
@@ -362,7 +371,7 @@ System_GetDefaultSettings = function ()
                 ButtonSize = 45,
                 IsEnabled = true,
                 OffsetX = 0,
-                OffsetY = 200,
+                OffsetY = 220,
             },
             Buttons = {
                 IconMap = {
@@ -463,7 +472,6 @@ System_GetDefaultSettings = function ()
 
     if System_IsClassic() then
         settings.GamePad.ActionBars.ButtonSize = 40
-        settings.GamePad.ActionBars.OffsetY = 200
     end
 
     return settings

@@ -251,7 +251,7 @@ GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
     end
 end
 GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame)
-    VERTICAL_MULTI_BAR_HEIGHT = 1 -- DIRTY HACK! Only tested in "Vanilla". See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
+    VERTICAL_MULTI_BAR_HEIGHT = 1 -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
 
     local buttonSize = ByteTerrace_GamePadActionBars.GamePad.ActionBars.ButtonSize
     local buttonSizeTimes2 = (buttonSize * 2)
@@ -260,7 +260,7 @@ GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame
     local xPadding = 60
     local yPadding = 0
 
-    for i = 0, 12 do
+    for i = 0, 60 do
         local actionBarName = "ActionButton"
         local alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenActive
         local iMod2 = (i % 2)

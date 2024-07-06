@@ -38,14 +38,13 @@ Events_OnAddonLoaded = function (addOnName)
 end
 Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     if (isInitialLogin or isReloadingUi) then
-        _G["SHOW_MULTI_ACTIONBAR_1"] = nil
-        _G["SHOW_MULTI_ACTIONBAR_2"] = nil
-        _G["SHOW_MULTI_ACTIONBAR_3"] = nil
-        _G["SHOW_MULTI_ACTIONBAR_4"] = nil
-
         Camera_InitializeConsoleVariables()
         GamePad_InitializeConsoleVariables()
-        MultiActionBar_Update()
+
+        Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", false);
+        Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", false);
+        Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", false);
+        Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", false);
     end
 
     ResetView(5)

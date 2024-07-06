@@ -1,5 +1,5 @@
 ## Author: kittoes@byteterrace.com
-## Interface: 11500
+## Interface: 11502
 ## Notes: Pardon all the dust!
 ## OptionalDeps: ConsolePad_Cursor, Immersion
 ## SavedVariables: ByteTerrace_GamePadActionBars

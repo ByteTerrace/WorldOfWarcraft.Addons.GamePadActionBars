@@ -1,35 +1,21 @@
-local Camera_InitializeConsoleVariables
-local ConsoleVariables_Set
 local Events_OnAddonLoaded
 local Events_OnPlayerEnteringWorld
 local Events_OnPlayerFlagsChanged
 local Events_OnPlayerRegenDisabled
 local Events_OnPlayerRegenEnabled
 local GamePad_InitializeBindings
-local GamePad_InitializeConsoleVariables
 local GamePad_InitializeDriver
 local GamePad_InitializeUserInterface
+local Player_GetStatusIndicatorColor
+local System_GetAddOnSettings
+local System_GetDefaultAddOnSettings
+local System_SetAddOnSettings
+local System_InitializeConsoleVariables
+local System_IsClassic
+local System_IsMainline
+local System_OnAddedLoaded
 
-Camera_InitializeConsoleVariables = function ()
-    -- EXPERIMENTAL: action camera configuration
-    UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
-
-    for key, value in pairs(ByteTerrace_GamePadActionBars.Camera.ConsoleVariables) do
-        ConsoleVariables_Set(key, value)
-    end
-end
-ConsoleVariables_Set = function (key, value)
-    local valueType = type(value)
-
-    if ("boolean" == valueType) then
-        value = (value and "1" or "0")
-    elseif ("number" == valueType) then
-        value = tostring(value)
-    end
-
-    C_CVar.SetCVar(key, value)
-end
-Events_OnAddonLoaded = function (addOnName)
+Events_OnAddonLoaded = function (addOnName, containsBindings)
     local handler = ByteTerraceWowApi.Addons.HandlerMap[addOnName]
 
     if (nil ~= handler) then
@@ -38,21 +24,20 @@ Events_OnAddonLoaded = function (addOnName)
 end
 Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     if (isInitialLogin or isReloadingUi) then
-        Camera_InitializeConsoleVariables()
-        GamePad_InitializeConsoleVariables()
+        local addonSettings = System_GetAddOnSettings()
 
-        if System_IsClassic() then
+        UIParent:UnregisterEvent("EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED")
+
+        System_InitializeConsoleVariables(addonSettings.Camera.ConsoleVariables)
+        System_InitializeConsoleVariables(addonSettings.GamePad.ConsoleVariables)
+
+        if System_IsClassic() then -- TODO: Determine if there is a way to apply these settings in non-classic modes.
             _G["SHOW_MULTI_ACTIONBAR_1"] = nil
             _G["SHOW_MULTI_ACTIONBAR_2"] = nil
             _G["SHOW_MULTI_ACTIONBAR_3"] = nil
             _G["SHOW_MULTI_ACTIONBAR_4"] = nil
 
             MultiActionBar_Update()
-        else -- TODO: Determine if there is a way to apply these settings ephemerally; as we do in classic.
-            Settings.SetValue("PROXY_SHOW_ACTIONBAR_2", false)
-            Settings.SetValue("PROXY_SHOW_ACTIONBAR_3", false)
-            Settings.SetValue("PROXY_SHOW_ACTIONBAR_4", false)
-            Settings.SetValue("PROXY_SHOW_ACTIONBAR_5", false)
         end
     end
 
@@ -63,7 +48,7 @@ Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     SaveView(5)
     Events_OnPlayerFlagsChanged()
 end
-Events_OnPlayerFlagsChanged = function ()
+Events_OnPlayerFlagsChanged = function (unitTarget)
     C_GamePad.SetLedColor(Player_GetStatusIndicatorColor(ByteTerraceWowApi.Colors, IsChatAFK(), ByteTerraceWowApi.Player.IsInCombat))
 end
 Events_OnPlayerRegenDisabled = function ()
@@ -76,7 +61,7 @@ Events_OnPlayerRegenEnabled = function ()
     C_GamePad.SetVibration("Low", 0.5)
     Events_OnPlayerFlagsChanged()
 end
-GamePad_InitializeBindings = function (frame)
+GamePad_InitializeBindings = function (frame, gamePadSettings)
     local isDualSenseControllerConnected = false
     local isNintendoSwitchProControllerConnected = false
     local isXboxControllerConnected = false
@@ -85,7 +70,7 @@ GamePad_InitializeBindings = function (frame)
         local _, rawState = pcall(C_GamePad.GetDeviceRawState, deviceId)
 
         if (nil ~= rawState) then
-            local deviceType = ByteTerrace_GamePadActionBars.GamePad.VendorIdMap[rawState.vendorID]
+            local deviceType = gamePadSettings.VendorIdMap[rawState.vendorID]
 
             if ("DualSense" == deviceType) then
                 isDualSenseControllerConnected = true
@@ -98,49 +83,49 @@ GamePad_InitializeBindings = function (frame)
     end
 
     if isDualSenseControllerConnected then
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_triangle.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_square.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_cross.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_circle.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding = "PADSOCIAL"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding = "PADFORWARD"
+        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_triangle.blp"
+        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_square.blp"
+        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_cross.blp"
+        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_circle.blp"
+        gamePadSettings.Buttons.Select.Binding = "PADSOCIAL"
+        gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     elseif isNintendoSwitchProControllerConnected then
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding = "PADBACK"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding = "PADFORWARD"
+        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
+        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
+        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
+        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
+        gamePadSettings.Buttons.Select.Binding = "PADBACK"
+        gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     elseif isXboxControllerConnected then
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding = "PADBACK"
-        ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding = "PADFORWARD"
+        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
+        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
+        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
+        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
+        gamePadSettings.Buttons.Select.Binding = "PADBACK"
+        gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     end
 
-    frame:SetAttribute("PadSelect-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding)
-    frame:SetAttribute("PadSelect-State1-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[1].Binding)
-    frame:SetAttribute("PadSelect-State2-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[2].Binding)
-    frame:SetAttribute("PadSelect-State3-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[3].Binding)
-    frame:SetAttribute("PadSelect-State4-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[4].Binding)
-    frame:SetAttribute("PadSelect-State5-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[5].Binding)
-    frame:SetAttribute("PadShoulderLeft-State1-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderLeft.States[1].Binding)
-    frame:SetAttribute("PadShoulderLeft-State2-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderLeft.States[2].Binding)
-    frame:SetAttribute("PadShoulderLeft-State3-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderLeft.States[3].Binding)
-    frame:SetAttribute("PadShoulderRight-State1-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderRight.States[1].Binding)
-    frame:SetAttribute("PadShoulderRight-State2-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderRight.States[2].Binding)
-    frame:SetAttribute("PadShoulderRight-State3-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.PadShoulderRight.States[3].Binding)
-    frame:SetAttribute("PadStart-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding)
-    frame:SetAttribute("PadStart-State1-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[1].Binding)
-    frame:SetAttribute("PadStart-State2-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[2].Binding)
-    frame:SetAttribute("PadStart-State3-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[3].Binding)
-    frame:SetAttribute("PadStart-State4-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[4].Binding)
-    frame:SetAttribute("PadStart-State5-Binding", ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[5].Binding)
+    frame:SetAttribute("PadSelect-Binding", gamePadSettings.Buttons.Select.Binding)
+    frame:SetAttribute("PadSelect-State1-Binding", gamePadSettings.Buttons.Select.States[1].Binding)
+    frame:SetAttribute("PadSelect-State2-Binding", gamePadSettings.Buttons.Select.States[2].Binding)
+    frame:SetAttribute("PadSelect-State3-Binding", gamePadSettings.Buttons.Select.States[3].Binding)
+    frame:SetAttribute("PadSelect-State4-Binding", gamePadSettings.Buttons.Select.States[4].Binding)
+    frame:SetAttribute("PadSelect-State5-Binding", gamePadSettings.Buttons.Select.States[5].Binding)
+    frame:SetAttribute("PadShoulderLeft-State1-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[1].Binding)
+    frame:SetAttribute("PadShoulderLeft-State2-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[2].Binding)
+    frame:SetAttribute("PadShoulderLeft-State3-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[3].Binding)
+    frame:SetAttribute("PadShoulderRight-State1-Binding", gamePadSettings.Buttons.PadShoulderRight.States[1].Binding)
+    frame:SetAttribute("PadShoulderRight-State2-Binding", gamePadSettings.Buttons.PadShoulderRight.States[2].Binding)
+    frame:SetAttribute("PadShoulderRight-State3-Binding", gamePadSettings.Buttons.PadShoulderRight.States[3].Binding)
+    frame:SetAttribute("PadStart-Binding", gamePadSettings.Buttons.Start.Binding)
+    frame:SetAttribute("PadStart-State1-Binding", gamePadSettings.Buttons.Start.States[1].Binding)
+    frame:SetAttribute("PadStart-State2-Binding", gamePadSettings.Buttons.Start.States[2].Binding)
+    frame:SetAttribute("PadStart-State3-Binding", gamePadSettings.Buttons.Start.States[3].Binding)
+    frame:SetAttribute("PadStart-State4-Binding", gamePadSettings.Buttons.Start.States[4].Binding)
+    frame:SetAttribute("PadStart-State5-Binding", gamePadSettings.Buttons.Start.States[5].Binding)
 
-    SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Select.States[1].Binding)
-    SetOverrideBinding(frame, true, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.Binding, ByteTerrace_GamePadActionBars.GamePad.Buttons.Start.States[1].Binding)
+    SetOverrideBinding(frame, true, gamePadSettings.Buttons.Select.Binding, gamePadSettings.Buttons.Select.States[1].Binding)
+    SetOverrideBinding(frame, true, gamePadSettings.Buttons.Start.Binding, gamePadSettings.Buttons.Start.States[1].Binding)
     SetOverrideBinding(frame, true, "PADDUP", "ACTIONBUTTON1")
     SetOverrideBinding(frame, true, "PADDRIGHT", "ACTIONBUTTON2")
     SetOverrideBinding(frame, true, "PADDDOWN", "ACTIONBUTTON3")
@@ -154,12 +139,7 @@ GamePad_InitializeBindings = function (frame)
     SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
     SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
-GamePad_InitializeConsoleVariables = function ()
-    for key, value in pairs(ByteTerrace_GamePadActionBars.GamePad.ConsoleVariables) do
-        ConsoleVariables_Set(key, value)
-    end
-end
-GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
+GamePad_InitializeDriver = function (hiddenFrame, gamePadSettings, jumpButton, parentFrame)
     parentFrame:EnableGamePadButton(true)
     parentFrame:RegisterForClicks("AnyDown", "AnyUp")
     parentFrame:SetAttribute("action", 1)
@@ -178,7 +158,7 @@ GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
     parentFrame:SetFrameRef("HiddenFrame", hiddenFrame)
     parentFrame:SetFrameRef("JumpButton", jumpButton)
     parentFrame:SetFrameRef("ParentFrame", parentFrame)
-    parentFrame:SetPoint("BOTTOM", ByteTerrace_GamePadActionBars.GamePad.ActionBars.OffsetX, ByteTerrace_GamePadActionBars.GamePad.ActionBars.OffsetY)
+    parentFrame:SetPoint("BOTTOM", gamePadSettings.ActionBars.OffsetX, gamePadSettings.ActionBars.OffsetY)
     parentFrame:WrapScript(parentFrame, "OnClick", [[
         if self:GetAttribute("IsEnabled") then
             local actionButton5 = self:GetFrameRef("ActionButton5")
@@ -189,6 +169,7 @@ GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
             local parentFrame = self:GetFrameRef("ParentFrame")
 
             if (down) then
+                actionButton9:SetParent(parentFrame)
                 jumpButton:Hide()
                 self:SetBindingClick(true, "PAD1", actionButton9)
 
@@ -230,9 +211,10 @@ GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
                     end
                 end
             else
-                jumpButton:Show()
                 actionButton5:SetParent(hiddenFrame)
+                actionButton9:SetParent(hiddenFrame)
                 actionButton11:SetParent(hiddenFrame)
+                jumpButton:Show()
                 self:SetAttribute("action", self:GetAttribute("State1-ActionBarPage"))
                 self:SetAttribute("PadTriggerLeft-IsDown", false)
                 self:SetAttribute("PadTriggerRight-IsDown", false)
@@ -250,10 +232,10 @@ GamePad_InitializeDriver = function (hiddenFrame, jumpButton, parentFrame)
         parentFrame:SetAttribute("typerelease", "actionbar")
     end
 end
-GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame)
+GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpButton, parentFrame)
     VERTICAL_MULTI_BAR_HEIGHT = 1 -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
 
-    local buttonSize = ByteTerrace_GamePadActionBars.GamePad.ActionBars.ButtonSize
+    local buttonSize = gamePadSettings.ActionBars.ButtonSize
     local buttonSizeTimes2 = (buttonSize * 2)
     local buttonSizeTimes3 = (buttonSize * 3)
     local buttonSizeTimes4 = (buttonSize * 4)
@@ -262,7 +244,7 @@ GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame
 
     for i = 0, 60 do
         local actionBarName = "ActionButton"
-        local alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenActive
+        local alpha = gamePadSettings.ActionBars.AlphaWhenActive
         local iMod2 = (i % 2)
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
@@ -272,22 +254,22 @@ GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"
-            alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenPassive
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSize * (isReflection and -1 or 1)))
             yOffset = (yOffset + buttonSizeTimes2)
         elseif ((i > 23) and (i < 36)) then
             actionBarName = "MultiBarBottomRightButton"
-            alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenPassive
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSizeTimes2 * (isReflection and 1 or -1)))
             yOffset = (yOffset + buttonSizeTimes2)
         elseif ((i > 35) and (i < 48)) then
             actionBarName = "MultiBarLeftButton"
-            alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenPassive
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSizeTimes2 * (isReflection and 1 or -1)))
             yOffset = (yOffset - buttonSize)
         elseif ((i > 47) and (i < 60)) then
             actionBarName = "MultiBarRightButton"
-            alpha = ByteTerrace_GamePadActionBars.GamePad.ActionBars.AlphaWhenPassive
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSizeTimes3 * (isReflection and -1 or 1)))
             yOffset = yOffset
         end
@@ -298,7 +280,6 @@ GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame
         local gamePadIconTextureOffsetX = (((iMod6 == 1) and 17.5 or ((iMod6 == 3) and -17.5 or 0)) * (isReflection and -1 or 1))
         local gamePadIconTextureOffsetY = ((iMod6 == 0) and 17.5 or ((iMod6 == 2) and -17.5 or 0))
 
-        actionButton.HotKey:SetParent(hiddenFrame)
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
         actionButton:SetPoint("CENTER", parentFrame, "CENTER", xOffset, yOffset)
@@ -306,25 +287,35 @@ GamePad_InitializeUserInterface = function (hiddenFrame, jumpButton, parentFrame
         gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
         gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
         gamePadIconTexture:SetSize(24, 24)
-        gamePadIconTexture:SetTexture(ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[iMod12])
+        gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
 
         if ((i == 4) or (i == 10)) then
             actionButton:SetParent(hiddenFrame)
         elseif (i == 8) then
-            local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "ARTWORK")
-            local jumpIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
-            local jumpIconTexture = jumpIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+            local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
 
-            jumpButton:Disable()
+            gamePadIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
+            gamePadIconTexture = gamePadIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+
             jumpButton:SetAllPoints(actionButton)
+            jumpButton:SetScale(actionButton:GetScale())
+            jumpButton:SetSize(actionButton:GetSize())
             jumpButtonTexture:SetPoint("Center", 0, 0)
-            jumpButtonTexture:SetSize(_G[(actionBarName .. (iMod12 + 1) .. "Icon")]:GetSize())
+            jumpButtonTexture:SetScale(actionButton:GetScale())
+            jumpButtonTexture:SetSize(actionButton:GetSize())
             jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
-            jumpIconFrame:SetAllPoints(jumpButton)
-            jumpIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-            jumpIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
-            jumpIconTexture:SetSize(24, 24)
-            jumpIconTexture:SetTexture(ByteTerrace_GamePadActionBars.GamePad.Buttons.IconMap[iMod12])
+            gamePadIconFrame:SetAllPoints(jumpButton)
+            gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+            gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+            gamePadIconTexture:SetSize(24, 24)
+            gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+
+            hooksecurefunc("AscendStop", function()
+                jumpButton:SetButtonState("NORMAL")
+            end)
+            hooksecurefunc("JumpOrAscendStart", function()
+                jumpButton:SetButtonState("PUSHED")
+            end)
         end
     end
 
@@ -360,7 +351,10 @@ end
 Player_GetStatusIndicatorColor = function (colors, isAwayFromKeyboard, isInCombat)
     return (isInCombat and colors.IsInCombat or (isAwayFromKeyboard and colors.IsAwayFromKeyboard or colors.IsNeutral))
 end
-System_GetDefaultSettings = function ()
+System_GetAddOnSettings = function()
+    return _G["ByteTerrace_GamePadActionBars"]
+end
+System_GetDefaultAddOnSettings = function ()
     local settings = {
         Camera = {
             ConsoleVariables = {
@@ -488,34 +482,61 @@ System_GetDefaultSettings = function ()
 
     return settings
 end
+System_SetAddOnSettings = function(settings)
+    _G["ByteTerrace_GamePadActionBars"] = settings
+end
+System_InitializeConsoleVariables = function (variables)
+    for key, value in pairs(variables) do
+        local valueType = type(value)
+
+        if ("boolean" == valueType) then
+            value = (value and "1" or "0")
+        elseif ("number" == valueType) then
+            value = tostring(value)
+        end
+
+        C_CVar.SetCVar(key, value)
+    end
+end
 System_IsClassic = function ()
-    return (WOW_PROJECT_CLASSIC == WOW_PROJECT_ID)
+    return (_G["WOW_PROJECT_CLASSIC"] == _G["WOW_PROJECT_ID"])
 end
 System_IsMainline = function ()
-    return (WOW_PROJECT_MAINLINE == WOW_PROJECT_ID)
+    return (_G["WOW_PROJECT_MAINLINE"] == _G["WOW_PROJECT_ID"])
+end
+System_OnAddedLoaded = function()
+    local hiddenFrame = ByteTerraceWowApi.GamePad.HiddenFrame
+    local jumpButton = ByteTerraceWowApi.GamePad.JumpButton
+    local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
+    local settings = System_GetAddOnSettings()
+
+    if (nil == settings) then
+        settings = System_GetDefaultAddOnSettings()
+
+        System_SetAddOnSettings(settings)
+    end
+
+    if System_IsClassic() then
+        _G["ActionButton_UpdateHotkeys"] = function (self, actionButtonType)
+            local hotKey = self.HotKey
+
+            hotKey:Hide()
+            hotKey:SetText(_G["RANGE_INDICATOR"])
+        end
+    end
+
+    GamePad_InitializeBindings(parentFrame, settings.GamePad)
+    GamePad_InitializeDriver(hiddenFrame, settings.GamePad, jumpButton, parentFrame)
+
+    if settings.GamePad.ActionBars.IsEnabled then
+        GamePad_InitializeUserInterface(hiddenFrame, settings.GamePad, jumpButton, parentFrame)
+    end
 end
 
 ByteTerraceWowApi = {
     Addons = {
         HandlerMap = {
-            ByteTerrace_GamePadActionBars = function()
-                local addonSettings = _G["ByteTerrace_GamePadActionBars"]
-                local hiddenFrame = ByteTerraceWowApi.GamePad.HiddenFrame
-                local jumpButton = ByteTerraceWowApi.GamePad.JumpButton
-                local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
-
-                if (nil == addonSettings) then
-                    addonSettings = System_GetDefaultSettings()
-                    _G["ByteTerrace_GamePadActionBars"] = addonSettings
-                end
-
-                GamePad_InitializeBindings(parentFrame)
-                GamePad_InitializeDriver(hiddenFrame, jumpButton, parentFrame)
-
-                if addonSettings.GamePad.ActionBars.IsEnabled then
-                    GamePad_InitializeUserInterface(hiddenFrame, jumpButton, parentFrame)
-                end
-            end,
+            ByteTerrace_GamePadActionBars = System_OnAddedLoaded,
         },
     },
     Colors = {
@@ -540,7 +561,7 @@ ByteTerraceWowApi = {
         EventFrame = CreateFrame("Frame", "GamePadEventFrame", UIParent, "SecureHandlerBaseTemplate"),
         EventHandler = function(...) end,
         HiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate"),
-        JumpButton = CreateFrame("CheckButton", "GamePadJumpButton", UIParent, "ActionBarButtonTemplate"),
+        JumpButton = CreateFrame("Button", "GamePadJumpButton", UIParent, "ActionButtonTemplate, SecureActionButtonTemplate"),
     },
     Player = {
         IsInCombat = InCombatLockdown(),

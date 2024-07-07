@@ -12,6 +12,7 @@
         "CreateFrame",
         "C_CVar",
         "C_GamePad",
+        "hooksecurefunc",
         "IsChatAFK",
         "InCombatLockdown",
         "MainMenuBar",
@@ -34,8 +35,5 @@
         "Settings",
         "SetView",
         "UIParent",
-        "WOW_PROJECT_CLASSIC",
-        "WOW_PROJECT_ID",
-        "WOW_PROJECT_MAINLINE",
     ]
 }

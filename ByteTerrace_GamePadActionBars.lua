@@ -239,6 +239,7 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
     local buttonSizeTimes2 = (buttonSize * 2)
     local buttonSizeTimes3 = (buttonSize * 3)
     local buttonSizeTimes4 = (buttonSize * 4)
+    local scale = UIParent:GetScale()
     local xPadding = 60
     local yPadding = 0
 
@@ -275,10 +276,11 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
         end
 
         local actionButton = _G[(actionBarName .. (iMod12 + 1))]
+        local baseOffset = (buttonSize * 0.4375)
         local gamePadIconFrame = CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
         local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
-        local gamePadIconTextureOffsetX = (((iMod6 == 1) and 17.5 or ((iMod6 == 3) and -17.5 or 0)) * (isReflection and -1 or 1))
-        local gamePadIconTextureOffsetY = ((iMod6 == 0) and 17.5 or ((iMod6 == 2) and -17.5 or 0))
+        local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or ((3 == iMod6) and -baseOffset or 0)) * (isReflection and -1 or 1))
+        local gamePadIconTextureOffsetY = ((0 == iMod6) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
         actionButton:ClearAllPoints()
         actionButton:SetAlpha(alpha)
@@ -288,6 +290,10 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
         gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
         gamePadIconTexture:SetSize(24, 24)
         gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+        actionButton.HotKey:ClearAllPoints()
+        actionButton.HotKey:SetDrawLayer("OVERLAY")
+        actionButton.HotKey:SetParent(gamePadIconFrame)
+        actionButton.HotKey:SetPoint("CENTER", (-(actionButton:GetWidth() * 0.215) + (gamePadIconTextureOffsetX * 0.5)), (gamePadIconTextureOffsetY * scale * 0.45))
 
         if ((i == 4) or (i == 10)) then
             actionButton:SetParent(hiddenFrame)
@@ -316,6 +322,9 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             hooksecurefunc("JumpOrAscendStart", function()
                 jumpButton:SetButtonState("PUSHED")
             end)
+
+            print(actionButton.HotKey:GetStringWidth())
+            print(actionButton.HotKey:GetUnboundedStringWidth())
         end
     end
 

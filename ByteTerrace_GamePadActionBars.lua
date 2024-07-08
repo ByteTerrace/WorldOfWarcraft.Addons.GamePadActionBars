@@ -239,7 +239,6 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
     local buttonSizeTimes2 = (buttonSize * 2)
     local buttonSizeTimes3 = (buttonSize * 3)
     local buttonSizeTimes4 = (buttonSize * 4)
-    local scale = UIParent:GetScale()
     local xPadding = 60
     local yPadding = 0
 
@@ -292,8 +291,11 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
         gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
         actionButton.HotKey:ClearAllPoints()
         actionButton.HotKey:SetDrawLayer("OVERLAY")
+        actionButton.HotKey:SetJustifyH("CENTER")
+        actionButton.HotKey:SetJustifyV("CENTER")
         actionButton.HotKey:SetParent(gamePadIconFrame)
-        actionButton.HotKey:SetPoint("CENTER", (-(actionButton:GetWidth() * 0.215) + (gamePadIconTextureOffsetX * 0.5)), (gamePadIconTextureOffsetY * scale * 0.45))
+        actionButton.HotKey:SetPoint("CENTER", ((gamePadIconTextureOffsetX * 0.3) + 1), (gamePadIconTextureOffsetY * 0.3))
+        actionButton.HotKey:SetScale(1.25)
 
         if ((i == 4) or (i == 10)) then
             actionButton:SetParent(hiddenFrame)
@@ -316,15 +318,12 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             gamePadIconTexture:SetSize(24, 24)
             gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
 
-            hooksecurefunc("AscendStop", function()
+            hooksecurefunc("AscendStop", function ()
                 jumpButton:SetButtonState("NORMAL")
             end)
-            hooksecurefunc("JumpOrAscendStart", function()
+            hooksecurefunc("JumpOrAscendStart", function ()
                 jumpButton:SetButtonState("PUSHED")
             end)
-
-            print(actionButton.HotKey:GetStringWidth())
-            print(actionButton.HotKey:GetUnboundedStringWidth())
         end
     end
 
@@ -360,7 +359,7 @@ end
 Player_GetStatusIndicatorColor = function (colors, isAwayFromKeyboard, isInCombat)
     return (isInCombat and colors.IsInCombat or (isAwayFromKeyboard and colors.IsAwayFromKeyboard or colors.IsNeutral))
 end
-System_GetAddOnSettings = function()
+System_GetAddOnSettings = function ()
     return _G["ByteTerrace_GamePadActionBars"]
 end
 System_GetDefaultAddOnSettings = function ()
@@ -491,7 +490,7 @@ System_GetDefaultAddOnSettings = function ()
 
     return settings
 end
-System_SetAddOnSettings = function(settings)
+System_SetAddOnSettings = function (settings)
     _G["ByteTerrace_GamePadActionBars"] = settings
 end
 System_InitializeConsoleVariables = function (variables)
@@ -513,7 +512,7 @@ end
 System_IsMainline = function ()
     return (_G["WOW_PROJECT_MAINLINE"] == _G["WOW_PROJECT_ID"])
 end
-System_OnAddedLoaded = function()
+System_OnAddedLoaded = function ()
     local hiddenFrame = ByteTerraceWowApi.GamePad.HiddenFrame
     local jumpButton = ByteTerraceWowApi.GamePad.JumpButton
     local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
@@ -561,14 +560,14 @@ ByteTerraceWowApi = {
             PLAYER_REGEN_DISABLED = Events_OnPlayerRegenDisabled,
             PLAYER_REGEN_ENABLED = Events_OnPlayerRegenEnabled,
         },
-        SetHandler = function(func)
+        SetHandler = function (func)
             ByteTerraceWowApi.GamePad.EventHandler = func
         end,
     },
     GamePad = {
         ActionBarsFrame = CreateFrame("Button", "GamePadActionBarsFrame", UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate"),
         EventFrame = CreateFrame("Frame", "GamePadEventFrame", UIParent, "SecureHandlerBaseTemplate"),
-        EventHandler = function(...) end,
+        EventHandler = function (...) end,
         HiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate"),
         JumpButton = CreateFrame("Button", "GamePadJumpButton", UIParent, "ActionButtonTemplate, SecureActionButtonTemplate"),
     },
@@ -578,6 +577,6 @@ ByteTerraceWowApi = {
 }
 
 ByteTerraceWowApi.Events.SetHandler(function (_, eventName, ...) ByteTerraceWowApi.Events.HandlerMap[eventName](...) end)
-ByteTerraceWowApi.GamePad.EventFrame:HookScript("OnEvent", function(...) ByteTerraceWowApi.GamePad.EventHandler(...) end)
+ByteTerraceWowApi.GamePad.EventFrame:HookScript("OnEvent", function (...) ByteTerraceWowApi.GamePad.EventHandler(...) end)
 
 for eventName, _ in pairs(ByteTerraceWowApi.Events.HandlerMap) do ByteTerraceWowApi.GamePad.EventFrame:RegisterEvent(eventName) end

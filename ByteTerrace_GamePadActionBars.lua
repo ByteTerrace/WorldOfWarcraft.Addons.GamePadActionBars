@@ -46,15 +46,6 @@ Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
 
         System_InitializeConsoleVariables(addonSettings.Camera.ConsoleVariables)
         System_InitializeConsoleVariables(addonSettings.GamePad.ConsoleVariables)
-
-        if System_IsClassic() then -- TODO: Determine if there is a way to apply these settings in non-classic modes.
-            _G["SHOW_MULTI_ACTIONBAR_1"] = nil
-            _G["SHOW_MULTI_ACTIONBAR_2"] = nil
-            _G["SHOW_MULTI_ACTIONBAR_3"] = nil
-            _G["SHOW_MULTI_ACTIONBAR_4"] = nil
-
-            MultiActionBar_Update()
-        end
     end
 
     ResetView(5)
@@ -249,7 +240,14 @@ GamePad_InitializeDriver = function (hiddenFrame, gamePadSettings, jumpButton, p
     end
 end
 GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpButton, parentFrame)
-    VERTICAL_MULTI_BAR_HEIGHT = 1 -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
+    -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
+    VERTICAL_MULTI_BAR_HEIGHT = 1
+
+    -- Update frame strata of multi-bar frames so that the gamepad icon has the highest z-index.
+    MultiBarBottomLeft:SetFrameStrata("LOW")
+    MultiBarBottomRight:SetFrameStrata("LOW")
+    MultiBarLeft:SetFrameStrata("LOW")
+    MultiBarRight:SetFrameStrata("LOW")
 
     local buttonSize = gamePadSettings.ActionBars.ButtonSize
     local buttonSizeTimes2 = (buttonSize * 2)
@@ -258,8 +256,9 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
     local xPadding = 60
     local yPadding = 0
 
-    for i = 0, 11 do
+    for i = 0, 59 do
         local actionBarName = "ActionButton"
+        local alpha = gamePadSettings.ActionBars.AlphaWhenActive
         local iMod2 = (i % 2)
         local iMod6 = (i % 6)
         local iMod12 = (i % 12)
@@ -269,74 +268,83 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
 
         if ((i > 11) and (i < 24)) then
             actionBarName = "MultiBarBottomLeftButton"
-            xOffset = (xOffset + (buttonSize * (isReflection and -1 or 1)))
-            yOffset = (yOffset + buttonSizeTimes2)
-        elseif ((i > 23) and (i < 36)) then
-            actionBarName = "MultiBarBottomRightButton"
-            xOffset = (xOffset + (buttonSizeTimes2 * (isReflection and 1 or -1)))
-            yOffset = (yOffset + buttonSizeTimes2)
-        elseif ((i > 35) and (i < 48)) then
-            actionBarName = "MultiBarLeftButton"
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSizeTimes2 * (isReflection and 1 or -1)))
             yOffset = (yOffset - buttonSize)
-        elseif ((i > 47) and (i < 60)) then
-            actionBarName = "MultiBarRightButton"
+        elseif ((i > 23) and (i < 36)) then
+            actionBarName = "MultiBarBottomRightButton"
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
             xOffset = (xOffset + (buttonSizeTimes3 * (isReflection and -1 or 1)))
             yOffset = yOffset
+        elseif ((i > 35) and (i < 48)) then
+            actionBarName = "MultiBarLeftButton"
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
+            xOffset = (xOffset + (buttonSizeTimes2 * (isReflection and 1 or -1)))
+            yOffset = (yOffset + buttonSizeTimes2)
+        elseif ((i > 47) and (i < 60)) then
+            actionBarName = "MultiBarRightButton"
+            alpha = gamePadSettings.ActionBars.AlphaWhenPassive
+            xOffset = (xOffset + (buttonSize * (isReflection and -1 or 1)))
+            yOffset = (yOffset + buttonSizeTimes2)
         end
 
         local actionButton = _G[(actionBarName .. (iMod12 + 1))]
-        local baseOffset = (buttonSize * 0.4375)
-        local gamePadIconFrame = CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
-        local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
-        local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or ((3 == iMod6) and -baseOffset or 0)) * (isReflection and -1 or 1))
-        local gamePadIconTextureOffsetY = ((0 == iMod6) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
         actionButton:ClearAllPoints()
+        actionButton:SetAlpha(alpha)
         actionButton:SetPoint("CENTER", parentFrame, "CENTER", xOffset, yOffset)
-        actionButton.GamePadIconTexture = gamePadIconTexture
-        actionButton.HotKey:ClearAllPoints()
-        actionButton.HotKey:SetDrawLayer("OVERLAY")
-        actionButton.HotKey:SetJustifyH("CENTER")
-        actionButton.HotKey:SetJustifyV("CENTER")
-        actionButton.HotKey:SetParent(gamePadIconFrame)
-        actionButton.HotKey:SetPoint("CENTER", ((gamePadIconTextureOffsetX * 0.3) + 1), (gamePadIconTextureOffsetY * 0.3))
-        actionButton.HotKey:SetScale(1.25)
-        gamePadIconFrame:SetAllPoints(actionButton)
-        gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-        gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
-        gamePadIconTexture:SetSize(24, 24)
-        gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
 
-        if ((4 == i) or (8 == i) or (10 == i)) then
-            actionButton:SetParent(hiddenFrame)
+        if (i < 12) then
+            local baseOffset = (buttonSize * 0.4375)
+            local gamePadIconFrame = CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
+            local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
+            local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or ((3 == iMod6) and -baseOffset or 0)) * (isReflection and -1 or 1))
+            local gamePadIconTextureOffsetY = ((0 == iMod6) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
-            if (8 == i) then
-                local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
+            actionButton.GamePadIconTexture = gamePadIconTexture
+            actionButton.HotKey:ClearAllPoints()
+            actionButton.HotKey:SetDrawLayer("OVERLAY")
+            actionButton.HotKey:SetJustifyH("CENTER")
+            actionButton.HotKey:SetJustifyV("CENTER")
+            actionButton.HotKey:SetParent(gamePadIconFrame)
+            actionButton.HotKey:SetPoint("CENTER", ((gamePadIconTextureOffsetX * 0.3) + 1), (gamePadIconTextureOffsetY * 0.3))
+            actionButton.HotKey:SetScale(1.25)
+            gamePadIconFrame:SetAllPoints(actionButton)
+            gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+            gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+            gamePadIconTexture:SetSize(24, 24)
+            gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
 
-                gamePadIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
-                gamePadIconTexture = gamePadIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+            if ((4 == i) or (8 == i) or (10 == i)) then
+                actionButton:SetParent(hiddenFrame)
 
-                jumpButton:SetAllPoints(actionButton)
-                jumpButton:SetScale(actionButton:GetScale())
-                jumpButton:SetSize(actionButton:GetSize())
-                jumpButton.GamePadIconTexture = gamePadIconTexture
-                jumpButtonTexture:SetPoint("Center", 0, 0)
-                jumpButtonTexture:SetScale(actionButton:GetScale())
-                jumpButtonTexture:SetSize(actionButton:GetSize())
-                jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
-                gamePadIconFrame:SetAllPoints(jumpButton)
-                gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-                gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
-                gamePadIconTexture:SetSize(24, 24)
-                gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+                if (8 == i) then
+                    local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
 
-                hooksecurefunc("AscendStop", function ()
-                    jumpButton:SetButtonState("NORMAL")
-                end)
-                hooksecurefunc("JumpOrAscendStart", function ()
-                    jumpButton:SetButtonState("PUSHED")
-                end)
+                    gamePadIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
+                    gamePadIconTexture = gamePadIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+
+                    jumpButton:SetAllPoints(actionButton)
+                    jumpButton:SetScale(actionButton:GetScale())
+                    jumpButton:SetSize(actionButton:GetSize())
+                    jumpButton.GamePadIconTexture = gamePadIconTexture
+                    jumpButtonTexture:SetPoint("Center", 0, 0)
+                    jumpButtonTexture:SetScale(actionButton:GetScale())
+                    jumpButtonTexture:SetSize(actionButton:GetSize())
+                    jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
+                    gamePadIconFrame:SetAllPoints(jumpButton)
+                    gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+                    gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+                    gamePadIconTexture:SetSize(24, 24)
+                    gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+
+                    hooksecurefunc("AscendStop", function ()
+                        jumpButton:SetButtonState("NORMAL")
+                    end)
+                    hooksecurefunc("JumpOrAscendStart", function ()
+                        jumpButton:SetButtonState("PUSHED")
+                    end)
+                end
             end
         end
     end
@@ -394,6 +402,8 @@ System_GetDefaultAddOnSettings = function ()
         },
         GamePad = {
             ActionBars = {
+                AlphaWhenActive = 1.0,
+                AlphaWhenPassive = 0.65,
                 ButtonSize = 45,
                 IsEnabled = true,
                 OffsetX = 0,

@@ -10,7 +10,6 @@ local Events_OnPlayerEnteringWorld
 local Events_OnPlayerFlagsChanged
 local Events_OnPlayerRegenDisabled
 local Events_OnPlayerRegenEnabled
-local GamePad_InitializeBindings
 local GamePad_InitializeDriver
 local GamePad_InitializeUserInterface
 local Player_GetStatusIndicatorColor
@@ -30,12 +29,47 @@ Events_OnAddonLoaded = function (addOnName, containsBindings)
     end
 end
 Events_OnGamePadActiveChanged = function ()
-    local gamePadSettings = System_GetAddOnSettings().GamePad
+    local actionBarsFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
+    local addonSettings = System_GetAddOnSettings()
+    local gamePadButtons = addonSettings.GamePad.Buttons
+    local gamePadType = "Generic"
+    local iconTextureMap = ByteTerraceWowApi.GamePad.IconTextureMap
+    local themeBasePath = ("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Themes/juliocacko_alt")
 
-    GamePad_InitializeBindings(ByteTerraceWowApi.GamePad.ActionBarsFrame, gamePadSettings, "juliocacko_alt")
+    for deviceId in ipairs(C_GamePad:GetAllDeviceIDs()) do
+        local _, rawState = pcall(C_GamePad.GetDeviceRawState, deviceId)
+
+        if (nil ~= rawState) then
+            local deviceType = addonSettings.GamePad.VendorIdMap[rawState.vendorID]
+
+            if ("DualSense" == deviceType) then
+                gamePadButtons.Select.Binding = "PADSOCIAL"
+                gamePadType = "Sony PlayStation"
+            elseif ("NintendoSwitchPro" == deviceType) then
+                gamePadButtons.Select.Binding = "PADBACK"
+                gamePadType = "Nintendo Switch"
+            elseif ("XboxSeriesX" == deviceType) then
+                gamePadButtons.Select.Binding = "PADBACK"
+                gamePadType = "Microsoft Xbox"
+            end
+        end
+    end
+
+    iconTextureMap[0] = (themeBasePath .. "/Generic/dpad_up")
+    iconTextureMap[1] = (themeBasePath .. "/Generic/dpad_right")
+    iconTextureMap[2] = (themeBasePath .. "/Generic/dpad_down")
+    iconTextureMap[3] = (themeBasePath .. "/Generic/dpad_left")
+    iconTextureMap[4] = (themeBasePath .. "/" .. gamePadType .. "/l1")
+    iconTextureMap[5] = (themeBasePath .. "/Generic/l3")
+    iconTextureMap[6] = (themeBasePath .. "/" .. gamePadType .. "/bpad_up")
+    iconTextureMap[7] = (themeBasePath .. "/" .. gamePadType .. "/bpad_left")
+    iconTextureMap[8] = (themeBasePath .. "/" .. gamePadType .. "/bpad_down")
+    iconTextureMap[9] = (themeBasePath .. "/" .. gamePadType .. "/bpad_right")
+    iconTextureMap[10] = (themeBasePath .. "/" .. gamePadType .. "/r1")
+    iconTextureMap[11] = (themeBasePath .. "/Generic/r3")
 
     for i = 0, 11 do
-        local texture = gamePadSettings.Buttons.IconTextureMap[i]
+        local texture = iconTextureMap[i]
 
         _G[("ActionButton" .. (i + 1))].GamePadIconTexture:SetTexture(texture)
 
@@ -43,6 +77,40 @@ Events_OnGamePadActiveChanged = function ()
             ByteTerraceWowApi.GamePad.JumpButton.GamePadIconTexture:SetTexture(texture)
         end
     end
+
+    actionBarsFrame:SetAttribute("PadSelect-Binding", gamePadButtons.Select.Binding)
+    actionBarsFrame:SetAttribute("PadSelect-State1-Binding", gamePadButtons.Select.States[1].Binding)
+    actionBarsFrame:SetAttribute("PadSelect-State2-Binding", gamePadButtons.Select.States[2].Binding)
+    actionBarsFrame:SetAttribute("PadSelect-State3-Binding", gamePadButtons.Select.States[3].Binding)
+    actionBarsFrame:SetAttribute("PadSelect-State4-Binding", gamePadButtons.Select.States[4].Binding)
+    actionBarsFrame:SetAttribute("PadSelect-State5-Binding", gamePadButtons.Select.States[5].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderLeft-State1-Binding", gamePadButtons.PadShoulderLeft.States[1].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderLeft-State2-Binding", gamePadButtons.PadShoulderLeft.States[2].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderLeft-State3-Binding", gamePadButtons.PadShoulderLeft.States[3].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderRight-State1-Binding", gamePadButtons.PadShoulderRight.States[1].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderRight-State2-Binding", gamePadButtons.PadShoulderRight.States[2].Binding)
+    actionBarsFrame:SetAttribute("PadShoulderRight-State3-Binding", gamePadButtons.PadShoulderRight.States[3].Binding)
+    actionBarsFrame:SetAttribute("PadStart-Binding", gamePadButtons.Start.Binding)
+    actionBarsFrame:SetAttribute("PadStart-State1-Binding", gamePadButtons.Start.States[1].Binding)
+    actionBarsFrame:SetAttribute("PadStart-State2-Binding", gamePadButtons.Start.States[2].Binding)
+    actionBarsFrame:SetAttribute("PadStart-State3-Binding", gamePadButtons.Start.States[3].Binding)
+    actionBarsFrame:SetAttribute("PadStart-State4-Binding", gamePadButtons.Start.States[4].Binding)
+    actionBarsFrame:SetAttribute("PadStart-State5-Binding", gamePadButtons.Start.States[5].Binding)
+
+    SetOverrideBinding(actionBarsFrame, true, gamePadButtons.Select.Binding, gamePadButtons.Select.States[1].Binding)
+    SetOverrideBinding(actionBarsFrame, true, gamePadButtons.Start.Binding, gamePadButtons.Start.States[1].Binding)
+    SetOverrideBinding(actionBarsFrame, true, "PADDUP", "ACTIONBUTTON1")
+    SetOverrideBinding(actionBarsFrame, true, "PADDRIGHT", "ACTIONBUTTON2")
+    SetOverrideBinding(actionBarsFrame, true, "PADDDOWN", "ACTIONBUTTON3")
+    SetOverrideBinding(actionBarsFrame, true, "PADDLEFT", "ACTIONBUTTON4")
+    SetOverrideBinding(actionBarsFrame, true, "PADLSTICK", "ACTIONBUTTON6")
+    SetOverrideBinding(actionBarsFrame, true, "PAD4", "ACTIONBUTTON7")
+    SetOverrideBinding(actionBarsFrame, true, "PAD3", "ACTIONBUTTON8")
+    SetOverrideBinding(actionBarsFrame, true, "PAD1", "JUMP")
+    SetOverrideBinding(actionBarsFrame, true, "PAD2", "ACTIONBUTTON10")
+    SetOverrideBinding(actionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
+    SetOverrideBindingClick(actionBarsFrame, true, "PADLTRIGGER", actionBarsFrame:GetName(), "PADLTRIGGER")
+    SetOverrideBindingClick(actionBarsFrame, true, "PADRTRIGGER", actionBarsFrame:GetName(), "PADRTRIGGER")
 end
 Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     if (isInitialLogin or isReloadingUi) then
@@ -73,76 +141,6 @@ Events_OnPlayerRegenEnabled = function ()
     ByteTerraceWowApi.Player.IsInCombat = false
     C_GamePad.SetVibration("Low", 0.5)
     Events_OnPlayerFlagsChanged()
-end
-GamePad_InitializeBindings = function (frame, gamePadSettings, themeName)
-    local basePath = ("Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Themes/" .. themeName)
-    local gamePadType = "Generic"
-
-    for deviceId in ipairs(C_GamePad:GetAllDeviceIDs()) do
-        local _, rawState = pcall(C_GamePad.GetDeviceRawState, deviceId)
-
-        if (nil ~= rawState) then
-            local deviceType = gamePadSettings.VendorIdMap[rawState.vendorID]
-
-            if ("DualSense" == deviceType) then
-                gamePadSettings.Buttons.Select.Binding = "PADSOCIAL"
-                gamePadType = "Sony PlayStation"
-            elseif ("NintendoSwitchPro" == deviceType) then
-                gamePadSettings.Buttons.Select.Binding = "PADBACK"
-                gamePadType = "Nintendo Switch"
-            elseif ("XboxSeriesX" == deviceType) then
-                gamePadSettings.Buttons.Select.Binding = "PADBACK"
-                gamePadType = "Microsoft Xbox"
-            end
-        end
-    end
-
-    gamePadSettings.Buttons.IconTextureMap[0] = (basePath .. "/Generic/dpad_up")
-    gamePadSettings.Buttons.IconTextureMap[1] = (basePath .. "/Generic/dpad_right")
-    gamePadSettings.Buttons.IconTextureMap[2] = (basePath .. "/Generic/dpad_down")
-    gamePadSettings.Buttons.IconTextureMap[3] = (basePath .. "/Generic/dpad_left")
-    gamePadSettings.Buttons.IconTextureMap[4] = (basePath .. "/" .. gamePadType .. "/l1")
-    gamePadSettings.Buttons.IconTextureMap[5] = (basePath .. "/Generic/l3")
-    gamePadSettings.Buttons.IconTextureMap[6] = (basePath .. "/" .. gamePadType .. "/bpad_up")
-    gamePadSettings.Buttons.IconTextureMap[7] = (basePath .. "/" .. gamePadType .. "/bpad_left")
-    gamePadSettings.Buttons.IconTextureMap[8] = (basePath .. "/" .. gamePadType .. "/bpad_down")
-    gamePadSettings.Buttons.IconTextureMap[9] = (basePath .. "/" .. gamePadType .. "/bpad_right")
-    gamePadSettings.Buttons.IconTextureMap[10] = (basePath .. "/" .. gamePadType .. "/r1")
-    gamePadSettings.Buttons.IconTextureMap[11] = (basePath .. "/Generic/r3")
-
-    frame:SetAttribute("PadSelect-Binding", gamePadSettings.Buttons.Select.Binding)
-    frame:SetAttribute("PadSelect-State1-Binding", gamePadSettings.Buttons.Select.States[1].Binding)
-    frame:SetAttribute("PadSelect-State2-Binding", gamePadSettings.Buttons.Select.States[2].Binding)
-    frame:SetAttribute("PadSelect-State3-Binding", gamePadSettings.Buttons.Select.States[3].Binding)
-    frame:SetAttribute("PadSelect-State4-Binding", gamePadSettings.Buttons.Select.States[4].Binding)
-    frame:SetAttribute("PadSelect-State5-Binding", gamePadSettings.Buttons.Select.States[5].Binding)
-    frame:SetAttribute("PadShoulderLeft-State1-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[1].Binding)
-    frame:SetAttribute("PadShoulderLeft-State2-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[2].Binding)
-    frame:SetAttribute("PadShoulderLeft-State3-Binding", gamePadSettings.Buttons.PadShoulderLeft.States[3].Binding)
-    frame:SetAttribute("PadShoulderRight-State1-Binding", gamePadSettings.Buttons.PadShoulderRight.States[1].Binding)
-    frame:SetAttribute("PadShoulderRight-State2-Binding", gamePadSettings.Buttons.PadShoulderRight.States[2].Binding)
-    frame:SetAttribute("PadShoulderRight-State3-Binding", gamePadSettings.Buttons.PadShoulderRight.States[3].Binding)
-    frame:SetAttribute("PadStart-Binding", gamePadSettings.Buttons.Start.Binding)
-    frame:SetAttribute("PadStart-State1-Binding", gamePadSettings.Buttons.Start.States[1].Binding)
-    frame:SetAttribute("PadStart-State2-Binding", gamePadSettings.Buttons.Start.States[2].Binding)
-    frame:SetAttribute("PadStart-State3-Binding", gamePadSettings.Buttons.Start.States[3].Binding)
-    frame:SetAttribute("PadStart-State4-Binding", gamePadSettings.Buttons.Start.States[4].Binding)
-    frame:SetAttribute("PadStart-State5-Binding", gamePadSettings.Buttons.Start.States[5].Binding)
-
-    SetOverrideBinding(frame, true, gamePadSettings.Buttons.Select.Binding, gamePadSettings.Buttons.Select.States[1].Binding)
-    SetOverrideBinding(frame, true, gamePadSettings.Buttons.Start.Binding, gamePadSettings.Buttons.Start.States[1].Binding)
-    SetOverrideBinding(frame, true, "PADDUP", "ACTIONBUTTON1")
-    SetOverrideBinding(frame, true, "PADDRIGHT", "ACTIONBUTTON2")
-    SetOverrideBinding(frame, true, "PADDDOWN", "ACTIONBUTTON3")
-    SetOverrideBinding(frame, true, "PADDLEFT", "ACTIONBUTTON4")
-    SetOverrideBinding(frame, true, "PADLSTICK", "ACTIONBUTTON6")
-    SetOverrideBinding(frame, true, "PAD4", "ACTIONBUTTON7")
-    SetOverrideBinding(frame, true, "PAD3", "ACTIONBUTTON8")
-    SetOverrideBinding(frame, true, "PAD1", "JUMP")
-    SetOverrideBinding(frame, true, "PAD2", "ACTIONBUTTON10")
-    SetOverrideBinding(frame, true, "PADRSTICK", "ACTIONBUTTON12")
-    SetOverrideBindingClick(frame, true, "PADLTRIGGER", frame:GetName(), "PADLTRIGGER")
-    SetOverrideBindingClick(frame, true, "PADRTRIGGER", frame:GetName(), "PADRTRIGGER")
 end
 GamePad_InitializeDriver = function (hiddenFrame, gamePadSettings, jumpButton, parentFrame)
     parentFrame:EnableGamePadButton(true)
@@ -294,54 +292,54 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
 
         if (i < 12) then
             local baseOffset = (buttonSize * 0.4375)
-            local gamePadIconFrame = CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
-            local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
+            local gamePadIconTexture = actionButton.GamePadIconTexture
             local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or (((3 == iMod6) or (4 == iMod12) or (10 == iMod12)) and -baseOffset or 0)) * (isReflection and -1 or 1))
             local gamePadIconTextureOffsetY = (((0 == iMod6) or (4 == iMod12) or (10 == iMod12)) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
-            actionButton.GamePadIconTexture = gamePadIconTexture
+            if (nil == gamePadIconTexture) then
+                gamePadIconTexture = actionButton:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
+
+                actionButton.GamePadIconTexture = gamePadIconTexture
+            end
+
             actionButton.HotKey:ClearAllPoints()
             actionButton.HotKey:SetDrawLayer("OVERLAY")
             actionButton.HotKey:SetJustifyH("CENTER")
-            actionButton.HotKey:SetJustifyV("CENTER")
-            actionButton.HotKey:SetParent(gamePadIconFrame)
+            actionButton.HotKey:SetJustifyV("MIDDLE")
             actionButton.HotKey:SetPoint("CENTER", ((gamePadIconTextureOffsetX * 0.3) + 1), (gamePadIconTextureOffsetY * 0.3))
             actionButton.HotKey:SetScale(1.25)
-            gamePadIconFrame:SetAllPoints(actionButton)
             gamePadIconTexture:SetAlpha(0.85)
             gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
             gamePadIconTexture:SetSize(24, 24)
-            gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
+
+            if ((5 < i) and (10 > i)) then
+                gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+            end
 
             if ((4 == i) or (8 == i) or (10 == i)) then
                 actionButton:SetParent(hiddenFrame)
 
                 if (8 == i) then
-                    local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
+                    gamePadIconTexture = jumpButton.GamePadIconTexture
 
-                    gamePadIconFrame = CreateFrame("Frame", "GamePadIconFrameJump", jumpButton)
-                    gamePadIconTexture = gamePadIconFrame:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+                    if (nil == gamePadIconTexture) then
+                        gamePadIconTexture = jumpButton:CreateTexture("GamePadIconTextureJump", "OVERLAY")
 
+                        jumpButton.GamePadIconTexture = gamePadIconTexture
+                    end
+
+                    gamePadIconTexture:SetAlpha(0.85)
+                    gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+                    gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+                    gamePadIconTexture:SetSize(24, 24)
+                    jumpButton.GamePadIconTexture = gamePadIconTexture
+                    jumpButton.icon:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
                     jumpButton:SetAllPoints(actionButton)
                     jumpButton:SetScale(actionButton:GetScale())
                     jumpButton:SetSize(actionButton:GetSize())
-                    jumpButton.GamePadIconTexture = gamePadIconTexture
-                    jumpButtonTexture:SetPoint("Center", 0, 0)
-                    jumpButtonTexture:SetScale(actionButton:GetScale())
-                    jumpButtonTexture:SetSize(actionButton:GetSize())
-                    jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
-                    gamePadIconFrame:SetAllPoints(jumpButton)
-                    gamePadIconTexture:SetAlpha(0.85)
-                    gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
-                    gamePadIconTexture:SetSize(24, 24)
-                    gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
 
-                    hooksecurefunc("AscendStop", function ()
-                        jumpButton:SetButtonState("NORMAL")
-                    end)
-                    hooksecurefunc("JumpOrAscendStart", function ()
-                        jumpButton:SetButtonState("PUSHED")
-                    end)
+                    hooksecurefunc("AscendStop", function () jumpButton:SetButtonState("NORMAL") end)
+                    hooksecurefunc("JumpOrAscendStart", function () jumpButton:SetButtonState("PUSHED") end)
                 end
             end
         end
@@ -413,14 +411,14 @@ System_GetDefaultAddOnSettings = function ()
                         [1] = { Binding = "TARGETNEARESTENEMY", },
                         [2] = { Binding = "TARGETNEARESTFRIEND", },
                         [3] = { Binding = "UNBOUND", },
-                    }
+                    },
                 },
                 PadShoulderRight = {
                     States = {
                         [1] = { Binding = "INTERACTMOUSEOVER", },
                         [2] = { Binding = "TOGGLEAUTORUN", },
                         [3] = { Binding = "FLIPCAMERAYAW", },
-                    }
+                    },
                 },
                 Select = {
                     Binding = "PADSOCIAL",
@@ -430,7 +428,7 @@ System_GetDefaultAddOnSettings = function ()
                         [3] = { Binding = "TOGGLECHARACTER0", },
                         [4] = { Binding = "TOGGLESOCIAL", },
                         [5] = { Binding = "TOGGLESPELLBOOK", },
-                    }
+                    },
                 },
                 Start = {
                     Binding = "PADFORWARD",
@@ -440,9 +438,8 @@ System_GetDefaultAddOnSettings = function ()
                         [3] = { Binding = "TOGGLEGAMEMENU", },
                         [4] = { Binding = "TOGGLEGAMEMENU", },
                         [5] = { Binding = "TOGGLEGAMEMENU", },
-                    }
+                    },
                 },
-                ThemeId = 1,
             },
             ConsoleVariables = {
                 GamePadAnalogMovement = true,
@@ -545,6 +542,8 @@ System_OnAddedLoaded = function ()
     if settings.GamePad.ActionBars.IsEnabled then
         GamePad_InitializeUserInterface(hiddenFrame, settings.GamePad, jumpButton, parentFrame)
     end
+
+    Events_OnGamePadActiveChanged()
 end
 
 ByteTerraceWowApi = {
@@ -567,15 +566,14 @@ ByteTerraceWowApi = {
             PLAYER_REGEN_DISABLED = Events_OnPlayerRegenDisabled,
             PLAYER_REGEN_ENABLED = Events_OnPlayerRegenEnabled,
         },
-        SetHandler = function (func)
-            ByteTerraceWowApi.GamePad.EventHandler = func
-        end,
+        SetHandler = function (func) ByteTerraceWowApi.GamePad.EventHandler = func end,
     },
     GamePad = {
         ActionBarsFrame = CreateFrame("Button", "GamePadActionBarsFrame", UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate"),
         EventFrame = CreateFrame("Frame", "GamePadEventFrame", UIParent, "SecureHandlerBaseTemplate"),
         EventHandler = function (...) end,
         HiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate"),
+        IconTextureMap = {},
         JumpButton = CreateFrame("Button", "GamePadJumpButton", UIParent, "ActionButtonTemplate, SecureActionButtonTemplate"),
     },
     Player = {

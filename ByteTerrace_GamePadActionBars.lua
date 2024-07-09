@@ -236,7 +236,7 @@ GamePad_InitializeDriver = function (hiddenFrame, gamePadSettings, jumpButton, p
     end
 end
 GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpButton, parentFrame)
-    -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/FrameXML/MultiActionBars.lua" for more information.
+    -- DIRTY HACK! See the function "MultiActionBar_Update" in "BlizzardInterfaceCode/Interface/AddOns/Blizzard_ActionBar/Classic/MultiActionBars.lua" for more information.
     VERTICAL_MULTI_BAR_HEIGHT = 1
 
     -- Update frame strata of multi-bar frames so that the gamepad icon has the highest z-index.
@@ -297,7 +297,7 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             local gamePadIconTextureOffsetY = (((0 == iMod6) or (4 == iMod12) or (10 == iMod12)) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
             if (nil == gamePadIconTexture) then
-                gamePadIconTexture = actionButton:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
+                gamePadIconTexture = actionButton:CreateTexture(nil, "OVERLAY")
 
                 actionButton.GamePadIconTexture = gamePadIconTexture
             end
@@ -323,23 +323,22 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
                     gamePadIconTexture = jumpButton.GamePadIconTexture
 
                     if (nil == gamePadIconTexture) then
-                        gamePadIconTexture = jumpButton:CreateTexture("GamePadIconTextureJump", "OVERLAY")
+                        gamePadIconTexture = jumpButton:CreateTexture(nil, "OVERLAY")
 
                         jumpButton.GamePadIconTexture = gamePadIconTexture
+
+                        hooksecurefunc("AscendStop", function () jumpButton:SetButtonState("NORMAL") end)
+                        hooksecurefunc("JumpOrAscendStart", function () jumpButton:SetButtonState("PUSHED") end)
                     end
 
                     gamePadIconTexture:SetAlpha(0.85)
                     gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
                     gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
                     gamePadIconTexture:SetSize(24, 24)
-                    jumpButton.GamePadIconTexture = gamePadIconTexture
                     jumpButton.icon:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
                     jumpButton:SetAllPoints(actionButton)
                     jumpButton:SetScale(actionButton:GetScale())
                     jumpButton:SetSize(actionButton:GetSize())
-
-                    hooksecurefunc("AscendStop", function () jumpButton:SetButtonState("NORMAL") end)
-                    hooksecurefunc("JumpOrAscendStart", function () jumpButton:SetButtonState("PUSHED") end)
                 end
             end
         end
@@ -529,12 +528,23 @@ System_OnAddedLoaded = function ()
     end
 
     if System_IsClassic() then
+        --[[ DIRTY HACK!
+
+            The implementation of "ActionButton_UpdateHotkeys" in "BlizzardInterfaceCode/Interface/AddOns/Blizzard_ActionBar/Classic/ActionButton.lua"
+            calls "SetPoint" on the hotkey, overriding the changes we make in "GamePad_InitializeUserInterface".
+        ]]
         _G["ActionButton_UpdateHotkeys"] = function (self, actionButtonType)
             local hotKey = self.HotKey
 
             hotKey:Hide()
             hotKey:SetText(_G["RANGE_INDICATOR"])
         end
+        --[[ DIRTY HACK!
+
+            The implementation of "MoveMicroButtons" in "BlizzardInterfaceCode/Interface/AddOns/Blizzard_ActionBar/Classic/MainMenuBarMicroButtons.lua"
+            calls "SetPoint" on "CharacterMicroButton", overriding the changes we make in "GamePad_InitializeUserInterface".
+        ]]
+        _G["MoveMicroButtons"] = function() end
     end
 
     GamePad_InitializeDriver(hiddenFrame, settings.GamePad, jumpButton, parentFrame)

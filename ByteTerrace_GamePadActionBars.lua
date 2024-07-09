@@ -322,13 +322,12 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             actionButton.HotKey:SetScale(1.25)
             gamePadIconFrame:SetAllPoints(actionButton)
             gamePadIconTexture:SetAlpha(0.85)
-            --gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
             gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
             gamePadIconTexture:SetSize(24, 24)
             gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
 
             if ((4 == i) or (8 == i) or (10 == i)) then
-                --actionButton:SetParent(hiddenFrame)
+                actionButton:SetParent(hiddenFrame)
 
                 if (8 == i) then
                     local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
@@ -346,7 +345,6 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
                     jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
                     gamePadIconFrame:SetAllPoints(jumpButton)
                     gamePadIconTexture:SetAlpha(0.85)
-                    --gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
                     gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
                     gamePadIconTexture:SetSize(24, 24)
                     gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
@@ -471,7 +469,7 @@ System_GetDefaultAddOnSettings = function ()
                         [5] = { Binding = "TOGGLEGAMEMENU", },
                     }
                 },
-                ThemeId = nil,
+                ThemeId = 1,
             },
             ConsoleVariables = {
                 GamePadAnalogMovement = true,
@@ -554,11 +552,11 @@ System_OnAddedLoaded = function ()
     local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
     local settings = System_GetAddOnSettings()
 
-    --if (nil == settings) then
+    if (nil == settings) then
         settings = System_GetDefaultAddOnSettings()
 
         System_SetAddOnSettings(settings)
-    --end
+    end
 
     if System_IsClassic() then
         _G["ActionButton_UpdateHotkeys"] = function (self, actionButtonType)
@@ -592,7 +590,7 @@ ByteTerraceWowApi = {
             ADDON_LOADED = Events_OnAddonLoaded,
             GAME_PAD_ACTIVE_CHANGED = Events_OnGamePadActiveChanged,
             PLAYER_ENTERING_WORLD = Events_OnPlayerEnteringWorld,
-            PLAYER_FLAGS_CHANGED = Events_OnGamePadActiveChanged,
+            PLAYER_FLAGS_CHANGED = Events_OnPlayerFlagsChanged,
             PLAYER_REGEN_DISABLED = Events_OnPlayerRegenDisabled,
             PLAYER_REGEN_ENABLED = Events_OnPlayerRegenEnabled,
         },

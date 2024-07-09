@@ -36,7 +36,6 @@
         "SaveView",
         "SetOverrideBinding",
         "SetOverrideBindingClick",
-        "Settings",
         "SetView",
         "UIParent",
     ]

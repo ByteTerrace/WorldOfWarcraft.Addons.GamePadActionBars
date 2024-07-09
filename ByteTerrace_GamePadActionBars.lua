@@ -29,7 +29,12 @@ Events_OnGamePadActiveChanged = function ()
     GamePad_InitializeBindings(ByteTerraceWowApi.GamePad.ActionBarsFrame, gamePadSettings)
 
     for i = 0, 11 do
-        local texture = gamePadSettings.Buttons.IconMap[i]
+        local texture = gamePadSettings.Buttons.IconTextureMap[i]
+        local themeId = gamePadSettings.Buttons.ThemeId
+
+        if (nil ~= themeId) then
+            texture = (texture .. "_" .. ByteTerraceWowApi.GamePad.ButtonThemeMap[themeId] .. ".blp")
+        end
 
         _G[("ActionButton" .. (i + 1))].GamePadIconTexture:SetTexture(texture)
 
@@ -90,24 +95,30 @@ GamePad_InitializeBindings = function (frame, gamePadSettings)
     end
 
     if isDualSenseControllerConnected then
-        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_triangle.blp"
-        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_square.blp"
-        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_cross.blp"
-        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_circle.blp"
+        gamePadSettings.Buttons.IconTextureMap[4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_l1"
+        gamePadSettings.Buttons.IconTextureMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_triangle"
+        gamePadSettings.Buttons.IconTextureMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_square"
+        gamePadSettings.Buttons.IconTextureMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_cross"
+        gamePadSettings.Buttons.IconTextureMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_circle"
+        gamePadSettings.Buttons.IconTextureMap[10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/playstation_r1"
         gamePadSettings.Buttons.Select.Binding = "PADSOCIAL"
         gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     elseif isNintendoSwitchProControllerConnected then
-        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
-        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
-        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
-        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
+        gamePadSettings.Buttons.IconTextureMap[4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_l"
+        gamePadSettings.Buttons.IconTextureMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_x"
+        gamePadSettings.Buttons.IconTextureMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_y"
+        gamePadSettings.Buttons.IconTextureMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_b"
+        gamePadSettings.Buttons.IconTextureMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_a"
+        gamePadSettings.Buttons.IconTextureMap[10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/switch_r"
         gamePadSettings.Buttons.Select.Binding = "PADBACK"
         gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     elseif isXboxControllerConnected then
-        gamePadSettings.Buttons.IconMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y.blp"
-        gamePadSettings.Buttons.IconMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x.blp"
-        gamePadSettings.Buttons.IconMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a.blp"
-        gamePadSettings.Buttons.IconMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b.blp"
+        gamePadSettings.Buttons.IconTextureMap[4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_lb"
+        gamePadSettings.Buttons.IconTextureMap[6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_y"
+        gamePadSettings.Buttons.IconTextureMap[7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_x"
+        gamePadSettings.Buttons.IconTextureMap[8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_a"
+        gamePadSettings.Buttons.IconTextureMap[9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_b"
+        gamePadSettings.Buttons.IconTextureMap[10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/xbox_rb"
         gamePadSettings.Buttons.Select.Binding = "PADBACK"
         gamePadSettings.Buttons.Start.Binding = "PADFORWARD"
     end
@@ -298,8 +309,8 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             local baseOffset = (buttonSize * 0.4375)
             local gamePadIconFrame = CreateFrame("Frame", ((actionBarName .. "GamePadIconFrame" .. (iMod12 + 1))), actionButton)
             local gamePadIconTexture = gamePadIconFrame:CreateTexture(((actionBarName .. "GamePadIconTexture" .. (iMod12 + 1))), "OVERLAY")
-            local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or ((3 == iMod6) and -baseOffset or 0)) * (isReflection and -1 or 1))
-            local gamePadIconTextureOffsetY = ((0 == iMod6) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
+            local gamePadIconTextureOffsetX = (((1 == iMod6) and baseOffset or (((3 == iMod6) or (4 == iMod12) or (10 == iMod12)) and -baseOffset or 0)) * (isReflection and -1 or 1))
+            local gamePadIconTextureOffsetY = (((0 == iMod6) or (4 == iMod12) or (10 == iMod12)) and baseOffset or ((2 == iMod6) and -baseOffset or 0))
 
             actionButton.GamePadIconTexture = gamePadIconTexture
             actionButton.HotKey:ClearAllPoints()
@@ -310,13 +321,14 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
             actionButton.HotKey:SetPoint("CENTER", ((gamePadIconTextureOffsetX * 0.3) + 1), (gamePadIconTextureOffsetY * 0.3))
             actionButton.HotKey:SetScale(1.25)
             gamePadIconFrame:SetAllPoints(actionButton)
-            gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+            gamePadIconTexture:SetAlpha(0.85)
+            --gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
             gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
             gamePadIconTexture:SetSize(24, 24)
-            gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+            gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
 
             if ((4 == i) or (8 == i) or (10 == i)) then
-                actionButton:SetParent(hiddenFrame)
+                --actionButton:SetParent(hiddenFrame)
 
                 if (8 == i) then
                     local jumpButtonTexture = jumpButton:CreateTexture("GamePadJumpTexture", "BACKGROUND")
@@ -333,10 +345,11 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
                     jumpButtonTexture:SetSize(actionButton:GetSize())
                     jumpButtonTexture:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
                     gamePadIconFrame:SetAllPoints(jumpButton)
-                    gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+                    gamePadIconTexture:SetAlpha(0.85)
+                    --gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
                     gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
                     gamePadIconTexture:SetSize(24, 24)
-                    gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconMap[iMod12])
+                    gamePadIconTexture:SetTexture(gamePadSettings.Buttons.IconTextureMap[iMod12])
 
                     hooksecurefunc("AscendStop", function ()
                         jumpButton:SetButtonState("NORMAL")
@@ -410,19 +423,19 @@ System_GetDefaultAddOnSettings = function ()
                 OffsetY = 220,
             },
             Buttons = {
-                IconMap = {
-                    [0] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_up.blp",
-                    [1] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_right.blp",
-                    [2] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_down.blp",
-                    [3] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_left.blp",
-                    [4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_trigger_button_left_1.blp",
-                    [5] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_stick_button_left.blp",
-                    [6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
-                    [7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
-                    [8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
-                    [9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_unknown.blp",
-                    [10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_trigger_button_right_1.blp",
-                    [11] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_stick_button_right.blp",
+                IconTextureMap = {
+                    [0] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_up",
+                    [1] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_right",
+                    [2] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_down",
+                    [3] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_dpad_left",
+                    [4] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_l1",
+                    [5] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_l3",
+                    [6] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_y",
+                    [7] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_x",
+                    [8] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_a",
+                    [9] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_b",
+                    [10] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_r1",
+                    [11] = "Interface/AddOns/ByteTerrace_GamePadActionBars/Assets/Icons/generic_r3",
                 },
                 PadShoulderLeft = {
                     States = {
@@ -458,6 +471,7 @@ System_GetDefaultAddOnSettings = function ()
                         [5] = { Binding = "TOGGLEGAMEMENU", },
                     }
                 },
+                ThemeId = nil,
             },
             ConsoleVariables = {
                 GamePadAnalogMovement = true,
@@ -540,11 +554,11 @@ System_OnAddedLoaded = function ()
     local parentFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
     local settings = System_GetAddOnSettings()
 
-    if (nil == settings) then
+    --if (nil == settings) then
         settings = System_GetDefaultAddOnSettings()
 
         System_SetAddOnSettings(settings)
-    end
+    --end
 
     if System_IsClassic() then
         _G["ActionButton_UpdateHotkeys"] = function (self, actionButtonType)
@@ -578,7 +592,7 @@ ByteTerraceWowApi = {
             ADDON_LOADED = Events_OnAddonLoaded,
             GAME_PAD_ACTIVE_CHANGED = Events_OnGamePadActiveChanged,
             PLAYER_ENTERING_WORLD = Events_OnPlayerEnteringWorld,
-            PLAYER_FLAGS_CHANGED = Events_OnPlayerFlagsChanged,
+            PLAYER_FLAGS_CHANGED = Events_OnGamePadActiveChanged,
             PLAYER_REGEN_DISABLED = Events_OnPlayerRegenDisabled,
             PLAYER_REGEN_ENABLED = Events_OnPlayerRegenEnabled,
         },
@@ -588,6 +602,18 @@ ByteTerraceWowApi = {
     },
     GamePad = {
         ActionBarsFrame = CreateFrame("Button", "GamePadActionBarsFrame", UIParent, "SecureActionButtonTemplate, SecureHandlerStateTemplate"),
+        ButtonThemeMap = {
+            --[[
+                https://arks.itch.io/ps4-buttons
+                https://juliocacko.itch.io/free-input-prompts
+                https://robthefivenine.itch.io/flat-gamepad-icons
+            ]]
+            [0] = "arks",
+            [1] = "juliocacko",
+            [2] = "juliocacko_alt",
+            [3] = "juliocacko_retro",
+            [4] = "robthefivenine",
+        },
         EventFrame = CreateFrame("Frame", "GamePadEventFrame", UIParent, "SecureHandlerBaseTemplate"),
         EventHandler = function (...) end,
         HiddenFrame = CreateFrame("Frame", "GamePadHiddenFrame", UIParent, "SecureHandlerStateTemplate"),

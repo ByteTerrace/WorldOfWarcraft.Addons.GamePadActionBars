@@ -78,11 +78,7 @@ Events_OnGamePadActiveChanged = function ()
         end
     end
 
-    if (ByteTerraceWowApi.Player.IsInCombat) then
-        ByteTerraceWowApi.Player.IsActiveGamePadChangePending = true
-    else
-        GamePad_SetBindings()
-    end
+    GamePad_SetBindings()
 end
 Events_OnPlayerEnteringWorld = function (isInitialLogin, isReloadingUi)
     if (isInitialLogin or isReloadingUi) then
@@ -290,32 +286,34 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
                 gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
             end
 
-            if (8 == i) then
-                if (nil == jumpButton.gamePadIcon) then
-                    local gamePadIcon = CreateFrame("Frame", (jumpButton:GetName() .. "GamePadIcon"), jumpButton)
+            if ((4 == i) or (8 == i) or (10 == i)) then
+                actionButton:Hide()
+                actionButton:SetAttribute("statehidden", true);
 
-                    gamePadIcon:SetFrameLevel(jumpButton:GetFrameLevel() + 1)
-                    gamePadIcon:SetPoint("CENTER", jumpButton, "CENTER", 0, 0)
-                    gamePadIcon:SetScale(jumpButton:GetScale())
-                    gamePadIcon:SetSize(jumpButton:GetSize())
+                if (8 == i) then
+                    if (nil == jumpButton.gamePadIcon) then
+                        local gamePadIcon = CreateFrame("Frame", (jumpButton:GetName() .. "GamePadIcon"), jumpButton)
 
-                    jumpButton.gamePadIcon = gamePadIcon
-                    gamePadIcon.texture = gamePadIcon:CreateTexture(nil, "OVERLAY")
+                        gamePadIcon:SetFrameLevel(jumpButton:GetFrameLevel() + 1)
+                        gamePadIcon:SetPoint("CENTER", jumpButton, "CENTER", 0, 0)
+                        gamePadIcon:SetScale(jumpButton:GetScale())
+                        gamePadIcon:SetSize(jumpButton:GetSize())
 
-                    hooksecurefunc("AscendStop", function () jumpButton:SetButtonState("NORMAL") end)
-                    hooksecurefunc("JumpOrAscendStart", function () jumpButton:SetButtonState("PUSHED") end)
+                        jumpButton.gamePadIcon = gamePadIcon
+                        gamePadIcon.texture = gamePadIcon:CreateTexture(nil, "OVERLAY")
+                    end
+
+                    gamePadIconTexture = jumpButton.gamePadIcon.texture
+
+                    gamePadIconTexture:SetAlpha(0.85)
+                    gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
+                    gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
+                    gamePadIconTexture:SetSize(24, 24)
+                    jumpButton.icon:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
+                    jumpButton:SetAllPoints(actionButton)
+                    jumpButton:SetScale(actionButton:GetScale())
+                    jumpButton:SetSize(actionButton:GetSize())
                 end
-
-                gamePadIconTexture = jumpButton.gamePadIcon.texture
-
-                gamePadIconTexture:SetAlpha(0.85)
-                gamePadIconTexture:SetMask("Interface/Masks/CircleMaskScalable")
-                gamePadIconTexture:SetPoint("CENTER", gamePadIconTextureOffsetX, gamePadIconTextureOffsetY)
-                gamePadIconTexture:SetSize(24, 24)
-                jumpButton.icon:SetTexture("Interface/Icons/Ability_Rogue_FleetFooted")
-                jumpButton:SetAllPoints(actionButton)
-                jumpButton:SetScale(actionButton:GetScale())
-                jumpButton:SetSize(actionButton:GetSize())
             end
         end
     end
@@ -350,6 +348,12 @@ GamePad_InitializeUserInterface = function (hiddenFrame, gamePadSettings, jumpBu
     hiddenFrame:Hide()
 end
 GamePad_SetBindings = function()
+    if (ByteTerraceWowApi.Player.IsInCombat) then
+        ByteTerraceWowApi.Player.IsActiveGamePadChangePending = true
+
+        return
+    end
+
     local actionBarsFrame = ByteTerraceWowApi.GamePad.ActionBarsFrame
     local gamePadButtons = System_GetAddOnSettings().GamePad.Buttons
 
@@ -386,6 +390,25 @@ GamePad_SetBindings = function()
     SetOverrideBinding(actionBarsFrame, true, "PADRSTICK", "ACTIONBUTTON12")
     SetOverrideBindingClick(actionBarsFrame, true, "PADLTRIGGER", actionBarsFrame:GetName(), "PADLTRIGGER")
     SetOverrideBindingClick(actionBarsFrame, true, "PADRTRIGGER", actionBarsFrame:GetName(), "PADRTRIGGER")
+
+    --[[local isPadLTriggerDown = C_GamePad.GetDeviceMappedState().buttons[(C_GamePad.ButtonBindingToIndex("PADLTRIGGER") + 1)]
+    local isPadRTriggerDown = C_GamePad.GetDeviceMappedState().buttons[(C_GamePad.ButtonBindingToIndex("PADRTRIGGER") + 1)]
+
+    if (isPadLTriggerDown) then
+        if (isPadRTriggerDown)  then
+            ChangeActionBarPage(actionBarsFrame:GetAttribute("State4-ActionBarPage"))
+        else
+            ChangeActionBarPage(actionBarsFrame:GetAttribute("State2-ActionBarPage"))
+        end
+    elseif (isPadRTriggerDown)  then
+        if (isPadLTriggerDown)  then
+            ChangeActionBarPage(actionBarsFrame:GetAttribute("State5-ActionBarPage"))
+        else
+            ChangeActionBarPage(actionBarsFrame:GetAttribute("State3-ActionBarPage"))
+        end
+    else
+        ChangeActionBarPage(actionBarsFrame:GetAttribute("State1-ActionBarPage"))
+    end]]
 end
 Player_GetStatusIndicatorColor = function (colors, isAwayFromKeyboard, isInCombat)
     return (isInCombat and colors.IsInCombat or (isAwayFromKeyboard and colors.IsAwayFromKeyboard or colors.IsNeutral))
@@ -543,6 +566,13 @@ System_OnAddedLoaded = function ()
     GamePad_InitializeDriver(jumpButton, parentFrame)
     GamePad_InitializeUserInterface(hiddenFrame, settings.GamePad, jumpButton, parentFrame)
     Events_OnGamePadActiveChanged()
+
+    --https://www.wowinterface.com/forums/showthread.php?t=55594
+
+    parentFrame:SetAttribute("_onstate-foo", [[
+        self:CallMethod("Click")
+    ]])
+    RegisterAttributeDriver(parentFrame, "state-foo", "[bar:1] 3;[bar:3] 1;")
 end
 
 ByteTerraceWowApi = {
@@ -585,3 +615,28 @@ ByteTerraceWowApi.Events.SetHandler(function (_, eventName, ...) ByteTerraceWowA
 ByteTerraceWowApi.GamePad.EventFrame:HookScript("OnEvent", function (...) ByteTerraceWowApi.GamePad.EventHandler(...) end)
 
 for eventName, _ in pairs(ByteTerraceWowApi.Events.HandlerMap) do ByteTerraceWowApi.GamePad.EventFrame:RegisterEvent(eventName) end
+
+hooksecurefunc("ActionButton_UpdateHotkeys", function(self, actionButtonType)
+    local gamePadIcon = self.gamePadIcon
+    local hotKey = self.HotKey
+
+    if ((nil ~= gamePadIcon) and (nil ~= hotKey)) then
+        local _, _, _, offsetX, offsetY = gamePadIcon.texture:GetPoint()
+
+        if ((0 == offsetX) and (0 == offsetY)) then
+            offsetY = (System_GetAddOnSettings().GamePad.ActionBars.ButtonSize * 0.4375)
+        end
+
+        hotKey:ClearAllPoints()
+        hotKey:Hide()
+        hotKey:SetDrawLayer("OVERLAY")
+        hotKey:SetJustifyH("CENTER")
+        hotKey:SetJustifyV("MIDDLE")
+        hotKey:SetParent(gamePadIcon)
+        hotKey:SetPoint("CENTER", ((offsetX * 0.3) + 0.5), (offsetY * 0.3))
+        hotKey:SetScale(1.25)
+        hotKey:SetText(_G["RANGE_INDICATOR"])
+    end
+end)
+hooksecurefunc("AscendStop", function () ByteTerraceWowApi.GamePad.JumpButton:SetButtonState("NORMAL") end)
+hooksecurefunc("JumpOrAscendStart", function () ByteTerraceWowApi.GamePad.JumpButton:SetButtonState("PUSHED") end)

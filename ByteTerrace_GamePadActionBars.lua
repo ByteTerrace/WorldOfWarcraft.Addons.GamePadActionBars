@@ -120,83 +120,97 @@ GamePad_InitializeDriver = function (jumpButton, parentFrame)
     parentFrame:EnableGamePadButton(true)
     parentFrame:RegisterForClicks("AnyDown", "AnyUp")
     parentFrame:SetAttribute("action", 1)
-    parentFrame:SetAttribute("IsEnabled", true)
-    parentFrame:SetAttribute("PadTriggerLeft-IsDown", false)
-    parentFrame:SetAttribute("PadTriggerRight-IsDown", false)
+    parentFrame:SetAttribute("PADLTRIGGER", false)
+    parentFrame:SetAttribute("PADRTRIGGER", false)
     parentFrame:SetAttribute("State1-ActionBarPage", 1)
     parentFrame:SetAttribute("State2-ActionBarPage", 6)
     parentFrame:SetAttribute("State3-ActionBarPage", 5)
     parentFrame:SetAttribute("State4-ActionBarPage", 4)
     parentFrame:SetAttribute("State5-ActionBarPage", 3)
     parentFrame:SetAttribute("type", "actionbar")
+    parentFrame:SetAttribute("_onstate-actionbar", [[
+        local actionButton5 = self:GetFrameRef("ActionButton5")
+        local actionButton9 = self:GetFrameRef("ActionButton9")
+        local actionButton11 = self:GetFrameRef("ActionButton11")
+        local currentActionBarPage = self:GetAttribute("state-actionbar")
+        local jumpButton = self:GetFrameRef("JumpButton")
+
+        if (1 == currentActionBarPage) then
+            actionButton5:Hide()
+            actionButton9:Disable()
+            actionButton9:Hide()
+            actionButton11:Hide()
+            jumpButton:Show()
+        else
+            actionButton9:Enable()
+            actionButton9:Show()
+            jumpButton:Hide()
+
+            if (3 == currentActionBarPage) then
+                actionButton5:Show()
+                actionButton11:Show()
+            elseif (4 == currentActionBarPage) then
+                actionButton5:Show()
+                actionButton11:Show()
+            elseif (5 == currentActionBarPage) then
+                actionButton5:Hide()
+                actionButton11:Hide()
+            elseif (6 == currentActionBarPage) then
+                actionButton5:Hide()
+                actionButton11:Hide()
+            end
+        end
+    ]])
     parentFrame:SetFrameRef("ActionButton5", ActionButton5)
     parentFrame:SetFrameRef("ActionButton9", ActionButton9)
     parentFrame:SetFrameRef("ActionButton11", ActionButton11)
     parentFrame:SetFrameRef("JumpButton", jumpButton)
     parentFrame:WrapScript(parentFrame, "OnClick", [[
-        if self:GetAttribute("IsEnabled") then
-            local actionButton5 = self:GetFrameRef("ActionButton5")
-            local actionButton9 = self:GetFrameRef("ActionButton9")
-            local actionButton11 = self:GetFrameRef("ActionButton11")
-            local jumpButton = self:GetFrameRef("JumpButton")
+        local actionButton5 = self:GetFrameRef("ActionButton5")
+        local actionButton9 = self:GetFrameRef("ActionButton9")
+        local actionButton11 = self:GetFrameRef("ActionButton11")
 
-            if (down) then
-                actionButton9:Enable()
-                actionButton9:Show()
-                jumpButton:Hide()
-                self:SetBindingClick(true, "PAD1", actionButton9)
+        if (not down) then
+            self:SetAttribute("action", self:GetAttribute("State1-ActionBarPage"))
+            self:SetAttribute("PADLTRIGGER", false)
+            self:SetAttribute("PADRTRIGGER", false)
+            self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeft-State1-Binding"))
+            self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State1-Binding"))
+            self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State1-Binding"))
+            self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State1-Binding"))
+            self:SetBinding(true, "PAD1", "JUMP")
+        else
+            self:SetAttribute(button, true)
+            self:SetBindingClick(true, "PAD1", actionButton9)
 
-                if "PADLTRIGGER" == button then
-                    self:SetAttribute("PadTriggerLeft-IsDown", true)
-
-                    if self:GetAttribute("PadTriggerRight-IsDown") then
-                        actionButton5:Show()
-                        actionButton11:Show()
-                        self:SetAttribute("action", self:GetAttribute("State4-ActionBarPage"))
-                        self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State4-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State4-Binding"))
-                        self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                        self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
-                    else
-                        self:SetAttribute("action", self:GetAttribute("State2-ActionBarPage"))
-                        self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeft-State2-Binding"))
-                        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State2-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State2-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State2-Binding"))
-                    end
+            if ("PADLTRIGGER" == button) then
+                if self:GetAttribute("PADRTRIGGER") then
+                    self:SetAttribute("action", self:GetAttribute("State4-ActionBarPage"))
+                    self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State4-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State4-Binding"))
+                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
                 else
-                    self:SetAttribute("PadTriggerRight-IsDown", true)
-
-                    if self:GetAttribute("PadTriggerLeft-IsDown") then
-                        actionButton5:Show()
-                        actionButton11:Show()
-                        self:SetAttribute("action", self:GetAttribute("State5-ActionBarPage"))
-                        self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State5-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State5-Binding"))
-                        self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
-                        self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
-                    else
-                        self:SetAttribute("action", self:GetAttribute("State3-ActionBarPage"))
-                        self:ClearBinding("PADLSHOULDER")
-                        self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State3-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State3-Binding"))
-                        self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State3-Binding"))
-                    end
+                    self:SetAttribute("action", self:GetAttribute("State2-ActionBarPage"))
+                    self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeft-State2-Binding"))
+                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State2-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State2-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State2-Binding"))
                 end
-            else
-                actionButton5:Hide()
-                actionButton9:Disable()
-                actionButton9:Hide()
-                actionButton11:Hide()
-                jumpButton:Show()
-                self:SetAttribute("action", self:GetAttribute("State1-ActionBarPage"))
-                self:SetAttribute("PadTriggerLeft-IsDown", false)
-                self:SetAttribute("PadTriggerRight-IsDown", false)
-                self:SetBinding(true, "PADLSHOULDER", self:GetAttribute("PadShoulderLeft-State1-Binding"))
-                self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State1-Binding"))
-                self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State1-Binding"))
-                self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State1-Binding"))
-                self:SetBinding(true, "PAD1", "JUMP")
+            elseif ("PADRTRIGGER" == button) then
+                if self:GetAttribute("PADLTRIGGER") then
+                    self:SetAttribute("action", self:GetAttribute("State5-ActionBarPage"))
+                    self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State5-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State5-Binding"))
+                    self:SetBindingClick(true, "PADLSHOULDER", actionButton5)
+                    self:SetBindingClick(true, "PADRSHOULDER", actionButton11)
+                else
+                    self:SetAttribute("action", self:GetAttribute("State3-ActionBarPage"))
+                    self:ClearBinding("PADLSHOULDER")
+                    self:SetBinding(true, "PADRSHOULDER", self:GetAttribute("PadShoulderRight-State3-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadSelect-Binding"), self:GetAttribute("PadSelect-State3-Binding"))
+                    self:SetBinding(true, self:GetAttribute("PadStart-Binding"), self:GetAttribute("PadStart-State3-Binding"))
+                end
             end
         end
     ]])
@@ -566,13 +580,6 @@ System_OnAddedLoaded = function ()
     GamePad_InitializeDriver(jumpButton, parentFrame)
     GamePad_InitializeUserInterface(hiddenFrame, settings.GamePad, jumpButton, parentFrame)
     Events_OnGamePadActiveChanged()
-
-    --https://www.wowinterface.com/forums/showthread.php?t=55594
-
-    parentFrame:SetAttribute("_onstate-foo", [[
-        self:CallMethod("Click")
-    ]])
-    RegisterAttributeDriver(parentFrame, "state-foo", "[bar:1] 3;[bar:3] 1;")
 end
 
 ByteTerraceWowApi = {
@@ -589,7 +596,7 @@ ByteTerraceWowApi = {
     Events = {
         HandlerMap = {
             ADDON_LOADED = Events_OnAddonLoaded,
-            GAME_PAD_ACTIVE_CHANGED = Events_OnGamePadActiveChanged,
+            --GAME_PAD_ACTIVE_CHANGED = Events_OnGamePadActiveChanged,
             PLAYER_ENTERING_WORLD = Events_OnPlayerEnteringWorld,
             PLAYER_FLAGS_CHANGED = Events_OnPlayerFlagsChanged,
             PLAYER_REGEN_DISABLED = Events_OnPlayerRegenDisabled,
@@ -640,3 +647,4 @@ hooksecurefunc("ActionButton_UpdateHotkeys", function(self, actionButtonType)
 end)
 hooksecurefunc("AscendStop", function () ByteTerraceWowApi.GamePad.JumpButton:SetButtonState("NORMAL") end)
 hooksecurefunc("JumpOrAscendStart", function () ByteTerraceWowApi.GamePad.JumpButton:SetButtonState("PUSHED") end)
+RegisterAttributeDriver(ByteTerraceWowApi.GamePad.ActionBarsFrame, "state-actionbar", "[bar:1] 1;[bar:3] 3;[bar:4] 4;[bar:5] 5;[bar:6] 6;")

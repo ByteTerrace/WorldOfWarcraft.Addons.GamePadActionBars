@@ -31,6 +31,7 @@
         "MultiBarBottomRight",
         "MultiBarLeft",
         "MultiBarRight",
+        "RegisterAttributeDriver",
         "ReputationWatchBar",
         "ResetView",
         "SaveView",
